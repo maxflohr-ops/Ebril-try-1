@@ -11,6 +11,7 @@
     "research": "node src/creator-research.js",
     "research:dry": "node src/creator-research.js --dry-run",
     "research:demo": "node src/creator-research.js --demo",
+    "research:sound": "node src/creator-research.js --sound-url",
     "cobalt:add": "node src/cobalt-client.js --add",
     "cobalt:batch": "node src/cobalt-client.js --batch",
     "cobalt:process": "node src/cobalt-client.js --process",

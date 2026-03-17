@@ -108,6 +108,42 @@ class ChartexClient {
   }
 
   /**
+   * Look up a track by its TikTok sound ID.
+   * Returns: { id, title, artistName, isrc, releaseDate, platforms } or null if not found.
+   */
+  async searchByTikTokSoundId(soundId) {
+    try {
+      const res = await this._get('/tracks/search', { platform: 'tiktok', soundId });
+      // API may return { track: {...} } or { tracks: [...] } or the object directly
+      if (res.track)           return res.track;
+      if (res.tracks?.length)  return res.tracks[0];
+      if (res.id)              return res;
+      return null;
+    } catch (err) {
+      if (err.message.includes('404')) return null;
+      throw err;
+    }
+  }
+
+  /**
+   * Look up the track used in a specific TikTok video.
+   * Chartex indexes which sound each viral video uses.
+   * Returns: { id, title, artistName, ... } or null if not found.
+   */
+  async searchByTikTokVideoId(videoId) {
+    try {
+      const res = await this._get('/tracks/search', { platform: 'tiktok', videoId });
+      if (res.track)           return res.track;
+      if (res.tracks?.length)  return res.tracks[0];
+      if (res.id)              return res;
+      return null;
+    } catch (err) {
+      if (err.message.includes('404')) return null;
+      throw err;
+    }
+  }
+
+  /**
    * Convenience: fetch full snapshot for Ebril's catalog.
    * Returns combined song usage + top creators for every track.
    */

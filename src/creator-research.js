@@ -15,10 +15,11 @@
  *   Influence bonus  +10 pts  Chartex influenceScore / 10
  *
  * Usage:
- *   node src/creator-research.js                   # live run
- *   node src/creator-research.js --dry-run         # score & print, no writes
- *   node src/creator-research.js --demo            # mock data, no API keys needed
- *   node src/creator-research.js --threshold=75    # override min score (default 60)
+ *   node src/creator-research.js                          # live run (Ebril's tracks + rising sounds)
+ *   node src/creator-research.js --sound-url <url>        # any TikTok URL or short link
+ *   node src/creator-research.js --dry-run                # score & print, no writes
+ *   node src/creator-research.js --demo                   # mock data, no API keys needed
+ *   node src/creator-research.js --threshold=75           # override min score (default 60)
  */
 
 require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
@@ -27,6 +28,7 @@ const https         = require('https');
 const ChartexClient = require('./chartex-client');
 const { TABLES, FIELDS } = require('./airtable-sync');
 const { queueProfileVisit, queueStats, loadQueue } = require('./cobalt-client');
+const { lookupSoundCreators } = require('./sound-lookup');
 
 const BASE_ID  = process.env.AIRTABLE_BASE_ID || 'applXEAjh6k3Xmybl';
 const AT_KEY   = process.env.AIRTABLE_API_KEY;
@@ -35,6 +37,10 @@ const isDryRun     = process.argv.includes('--dry-run');
 const isDemo       = process.argv.includes('--demo');
 const thresholdArg = process.argv.find((a) => a.startsWith('--threshold='));
 const THRESHOLD    = thresholdArg ? parseInt(thresholdArg.split('=')[1], 10) : 60;
+
+// --sound-url <url>  — drop any TikTok URL/short link to find creators using that sound
+const soundUrlIdx = process.argv.indexOf('--sound-url');
+const SOUND_URL   = soundUrlIdx !== -1 ? process.argv[soundUrlIdx + 1] : null;
 
 // ── HTTP helpers ──────────────────────────────────────────────────────────────
 
@@ -412,13 +418,27 @@ async function collectLiveCreators(artistId) {
 // ── Main ──────────────────────────────────────────────────────────────────────
 
 async function main() {
+  const modeLabel = SOUND_URL ? 'SOUND URL' : isDemo ? 'DEMO' : isDryRun ? 'DRY-RUN' : 'LIVE';
   console.log('=== Creator Research Engine ===');
-  console.log(`Mode: ${isDemo ? 'DEMO' : isDryRun ? 'DRY-RUN' : 'LIVE'} | Min score: ${THRESHOLD}/100\n`);
+  console.log(`Mode: ${modeLabel} | Min score: ${THRESHOLD}/100\n`);
 
   // 1. Collect creators
   let trackCreators, risingCreators;
 
-  if (isDemo) {
+  if (SOUND_URL) {
+    // ── Sound URL mode ── drop any TikTok URL and find creators from that sound
+    const apiKey = process.env.CHARTEX_API_KEY;
+    if (!apiKey) {
+      console.error('Error: CHARTEX_API_KEY must be set in .env');
+      process.exit(1);
+    }
+    const chartex = new ChartexClient(apiKey);
+    console.log('Looking up sound from URL…');
+    const { track, creators } = await lookupSoundCreators(SOUND_URL, chartex, { limit: 50 });
+    console.log(`  Found ${creators.length} creator(s) using "${track.title}"\n`);
+    trackCreators  = creators;
+    risingCreators = [];
+  } else if (isDemo) {
     console.log('Using mock data…');
     trackCreators  = MOCK_TRACK_CREATORS;
     risingCreators = MOCK_RISING_SOUND_CREATORS;
