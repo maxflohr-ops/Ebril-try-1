@@ -26,6 +26,7 @@ require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') }
 const https         = require('https');
 const ChartexClient = require('./chartex-client');
 const { TABLES, FIELDS } = require('./airtable-sync');
+const { queueProfileVisit, queueStats, loadQueue } = require('./cobalt-client');
 
 const BASE_ID  = process.env.AIRTABLE_BASE_ID || 'applXEAjh6k3Xmybl';
 const AT_KEY   = process.env.AIRTABLE_API_KEY;
@@ -511,12 +512,28 @@ async function main() {
     console.log(`  ✓ ${addedPipeline.length} Pipeline record(s) added at stage "Identified".`);
   }
 
-  // 8. Summary
+  // 8. Queue profile visits in Cobalt (no URLs yet — manual review prompts)
+  const visitCreators = newCreators.map(({ creator, score }, i) => ({
+    ...creator,
+    _score:      score,
+    _airtableId: addedPeople[i]?.id || null,
+  }));
+  const visitCount = queueProfileVisit(visitCreators);
+  if (visitCount > 0) {
+    const qs = queueStats(loadQueue());
+    console.log(`\nCobalt visit queue: +${visitCount} profile(s) to review`);
+    console.log(`  Total queued: ${qs.pending} pending, ${qs.monitor} to visit`);
+    console.log(`  Run "npm run cobalt:audit" to see the full list`);
+    console.log(`  When you find a good post: npm run cobalt:add -- --url <url> --creator @handle`);
+  }
+
+  // 9. Summary
   console.log('\n=== Research Summary ===');
   console.log(`Evaluated:      ${allCreators.length}`);
   console.log(`Qualified:      ${qualified.length}`);
   console.log(`Dupes skipped:  ${dupes}`);
   console.log(`Added to CRM:   ${newCreators.length}`);
+  console.log(`Visit queue:    ${visitCount} new profile(s) to review`);
 
   if (newCreators.length) {
     console.log('\nTop additions:');

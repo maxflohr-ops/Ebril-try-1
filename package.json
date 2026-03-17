@@ -10,7 +10,13 @@
     "setup:ugc": "node src/setup-ugc-pipeline.js",
     "research": "node src/creator-research.js",
     "research:dry": "node src/creator-research.js --dry-run",
-    "research:demo": "node src/creator-research.js --demo"
+    "research:demo": "node src/creator-research.js --demo",
+    "cobalt:add": "node src/cobalt-client.js --add",
+    "cobalt:batch": "node src/cobalt-client.js --batch",
+    "cobalt:process": "node src/cobalt-client.js --process",
+    "cobalt:audit": "node src/cobalt-client.js --audit",
+    "cobalt:brief": "node src/cobalt-client.js --brief",
+    "cobalt:report": "node src/cobalt-client.js --report"
   },
   "dependencies": {
     "dotenv": "^16.4.5"
