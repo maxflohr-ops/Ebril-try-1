@@ -7,7 +7,10 @@
     "sync": "node src/sync.js",
     "sync:dry": "node src/sync.js --dry-run",
     "sync:demo": "node src/sync.js --demo",
-    "setup:ugc": "node src/setup-ugc-pipeline.js"
+    "setup:ugc": "node src/setup-ugc-pipeline.js",
+    "research": "node src/creator-research.js",
+    "research:dry": "node src/creator-research.js --dry-run",
+    "research:demo": "node src/creator-research.js --demo"
   },
   "dependencies": {
     "dotenv": "^16.4.5"
