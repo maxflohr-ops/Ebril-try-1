@@ -6,7 +6,8 @@
   "scripts": {
     "sync": "node src/sync.js",
     "sync:dry": "node src/sync.js --dry-run",
-    "sync:demo": "node src/sync.js --demo"
+    "sync:demo": "node src/sync.js --demo",
+    "setup:ugc": "node src/setup-ugc-pipeline.js"
   },
   "dependencies": {
     "dotenv": "^16.4.5"
