@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-const ACCOUNTS = [
+const ACCOUNTS_FALLBACK = [
   // === TIKTOK ===
   { id: 1, platform: "TikTok", handle: "@lanadelreylryics", currentUse: "Music / Lyrics", brand: "Music Promo", status: "Active", purpose: "ONLY ACCOUNT THAT'S GONE VIRAL — highest value asset", action: "PROTECT & LEVERAGE. Use viral momentum to drive traffic to Ebril, McKayla, and book funnel. Cross-promote everything here.", operator: "Max", priority: 1, viral: true },
   { id: 2, platform: "TikTok", handle: "@sleazetech", currentUse: "Indie Sleaze / Electro", brand: "Music Promo", status: "Active", purpose: "Indie sleaze, dance, electro promo niche", action: "KEEP. Clear niche identity. Cross-promote Ebril & McKayla when genre fits.", operator: "Max", priority: 2, viral: false },
@@ -57,6 +57,16 @@ export default function SocialCommandCenter() {
   const [platformFilter, setPlatformFilter] = useState("All");
   const [viewFilter, setViewFilter] = useState("All");
   const [expandedId, setExpandedId] = useState(null);
+  const [ACCOUNTS, setAccounts] = useState(ACCOUNTS_FALLBACK);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/accounts")
+      .then(r => r.json())
+      .then(data => { if (data.accounts?.length) setAccounts(data.accounts); })
+      .catch(() => {/* keep fallback */})
+      .finally(() => setLoading(false));
+  }, []);
 
   const platforms = ["All", "TikTok", "Instagram", "YouTube", "Spotify", "Facebook"];
   const views = ["All", "Keep As-Is", "Rebrand", "Marc/Rob", "Redundant"];
@@ -91,7 +101,7 @@ export default function SocialCommandCenter() {
           </div>
           <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 4 }}>Social Media Command Center</h1>
           <p style={{ fontSize: 13, color: "#71717a" }}>
-            {ACCOUNTS.length} accounts · {keepCount} keep · {rebrandCount} rebrand · {redundantCount} redundant
+            {loading ? "Loading from Airtable…" : `${ACCOUNTS.length} accounts · ${keepCount} keep · ${rebrandCount} rebrand · ${redundantCount} redundant`}
           </p>
         </div>
 
