@@ -1,0 +1,9 @@
+name = "florra-intake-proxy"
+main = "worker.mjs"
+compatibility_date = "2024-09-23"
+
+[vars]
+AIRTABLE_BASE = "applXEAjh6k3Xmybl"
+AIRTABLE_TABLE = "tblVQftjMQZgabI5m"
+# AIRTABLE_PAT is stored as a Wrangler secret — never commit the value.
+# To set it: wrangler secret put AIRTABLE_PAT
