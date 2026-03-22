@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Florra — Creator Intake</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d0d0f;
+      --surface: #16161a;
+      --border: #2a2a32;
+      --accent: #c9f542;
+      --accent-dim: #a8d022;
+      --text: #f0f0f0;
+      --muted: #8a8a9a;
+      --input-bg: #1e1e24;
+      --radius: 10px;
+      --max: 680px;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      min-height: 100vh;
+      padding: 40px 16px 80px;
+    }
+
+    header {
+      max-width: var(--max);
+      margin: 0 auto 48px;
+      text-align: center;
+    }
+
+    .logo {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: var(--accent);
+      margin-bottom: 12px;
+    }
+
+    header p {
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.6;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    /* Progress bar */
+    .progress-wrap {
+      max-width: var(--max);
+      margin: 0 auto 36px;
+    }
+
+    .progress-labels {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .progress-labels span {
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      transition: color 0.2s;
+    }
+
+    .progress-labels span.active { color: var(--accent); font-weight: 600; }
+
+    .progress-bar {
+      height: 3px;
+      background: var(--border);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 99px;
+      transition: width 0.4s ease;
+    }
+
+    /* Form sections */
+    form { max-width: var(--max); margin: 0 auto; }
+
+    .section {
+      display: none;
+      animation: fadeIn 0.25s ease;
+    }
+
+    .section.active { display: block; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .section-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .section-sub {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 28px;
+    }
+
+    /* Fields */
+    .field { margin-bottom: 20px; }
+
+    .field label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 7px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    .field label .req { color: var(--accent); margin-left: 2px; }
+
+    .field input,
+    .field textarea,
+    .field select {
+      width: 100%;
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-size: 15px;
+      padding: 12px 14px;
+      outline: none;
+      transition: border-color 0.15s;
+      font-family: inherit;
+    }
+
+    .field input:focus,
+    .field textarea:focus,
+    .field select:focus {
+      border-color: var(--accent);
+    }
+
+    .field input::placeholder,
+    .field textarea::placeholder { color: #444; }
+
+    .field textarea { resize: vertical; min-height: 88px; }
+
+    .field select option { background: #1e1e24; }
+
+    /* Two-col grid */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    @media (max-width: 520px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    /* Multi-select pills */
+    .pill-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .pill-group input[type="checkbox"] { display: none; }
+
+    .pill-group label {
+      display: inline-block;
+      padding: 7px 14px;
+      border-radius: 99px;
+      border: 1px solid var(--border);
+      background: var(--input-bg);
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-transform: none;
+      letter-spacing: 0;
+    }
+
+    .pill-group input[type="checkbox"]:checked + label {
+      background: var(--accent);
+      color: #0d0d0f;
+      border-color: var(--accent);
+      font-weight: 700;
+    }
+
+    /* Nav buttons */
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 36px;
+      gap: 12px;
+    }
+
+    .btn {
+      padding: 13px 28px;
+      border-radius: var(--radius);
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s;
+    }
+
+    .btn-back {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+
+    .btn-back:hover { border-color: var(--text); color: var(--text); }
+
+    .btn-next, .btn-submit {
+      background: var(--accent);
+      color: #0d0d0f;
+      margin-left: auto;
+    }
+
+    .btn-next:hover, .btn-submit:hover { background: var(--accent-dim); }
+
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* Success state */
+    #success {
+      display: none;
+      max-width: var(--max);
+      margin: 80px auto;
+      text-align: center;
+    }
+
+    #success .check {
+      font-size: 52px;
+      margin-bottom: 20px;
+    }
+
+    #success h2 { font-size: 26px; margin-bottom: 10px; }
+    #success p { color: var(--muted); font-size: 15px; }
+
+    /* Error */
+    .error-msg {
+      background: #2a1010;
+      border: 1px solid #5a2020;
+      color: #f87171;
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      font-size: 13px;
+      margin-top: 16px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">florra</div>
+  <p>Tell us about yourself. We'll match you with brands and campaigns built for your audience.</p>
+</header>
+
+<div class="progress-wrap">
+  <div class="progress-labels">
+    <span id="lbl-0" class="active">Basics</span>
+    <span id="lbl-1">Platforms</span>
+    <span id="lbl-2">Audience</span>
+    <span id="lbl-3">Deals</span>
+    <span id="lbl-4">Partnership</span>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:20%"></div></div>
+</div>
+
+<form id="intake-form" novalidate>
+
+  <!-- SECTION 0: Basics -->
+  <div class="section active" id="sec-0">
+    <div class="section-title">Your info</div>
+    <div class="section-sub">How we reach you — kept private.</div>
+
+    <div class="field">
+      <label>Full Name <span class="req">*</span></label>
+      <input type="text" name="Full Name" placeholder="Your name" required />
+    </div>
+
+    <div class="grid-2">
+      <div class="field">
+        <label>Email <span class="req">*</span></label>
+        <input type="email" name="Email" placeholder="you@example.com" required />
+      </div>
+      <div class="field">
+        <label>Phone</label>
+        <input type="tel" name="Phone" placeholder="+1 (555) 000-0000" />
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="field">
+        <label>Instagram Handle</label>
+        <input type="text" name="Instagram Handle" placeholder="@handle" />
+      </div>
+      <div class="field">
+        <label>TikTok Handle</label>
+        <input type="text" name="TikTok Handle" placeholder="@handle" />
+      </div>
+    </div>
+
+    <div class="field">
+      <label>YouTube Channel</label>
+      <input type="text" name="YouTube Channel" placeholder="Channel name or URL" />
+    </div>
+
+    <div class="nav">
+      <button type="button" class="btn btn-next" onclick="go(1)">Next →</button>
+    </div>
+  </div>
+
+  <!-- SECTION 1: Platforms & Stats -->
+  <div class="section" id="sec-1">
+    <div class="section-title">Platforms & stats</div>
+    <div class="section-sub">Your main home and the numbers behind it.</div>
+
+    <div class="field">
+      <label>Primary Platform <span class="req">*</span></label>
+      <select name="Primary Platform" required>
+        <option value="">— Select —</option>
+        <option>TikTok</option>
+        <option>Instagram</option>
+        <option>YouTube</option>
+        <option>YouTube Shorts</option>
+        <option>Multi-Platform</option>
+        <option>Podcast</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Content Niche</label>
+      <div class="pill-group" id="niche-group">
+        <input type="checkbox" id="n-Music" name="Content Niche" value="Music"><label for="n-Music">Music</label>
+        <input type="checkbox" id="n-Fashion" name="Content Niche" value="Fashion"><label for="n-Fashion">Fashion</label>
+        <input type="checkbox" id="n-Beauty" name="Content Niche" value="Beauty"><label for="n-Beauty">Beauty</label>
+        <input type="checkbox" id="n-Lifestyle" name="Content Niche" value="Lifestyle"><label for="n-Lifestyle">Lifestyle</label>
+        <input type="checkbox" id="n-Comedy" name="Content Niche" value="Comedy"><label for="n-Comedy">Comedy</label>
+        <input type="checkbox" id="n-Food" name="Content Niche" value="Food"><label for="n-Food">Food</label>
+        <input type="checkbox" id="n-Fitness" name="Content Niche" value="Fitness"><label for="n-Fitness">Fitness</label>
+        <input type="checkbox" id="n-Travel" name="Content Niche" value="Travel"><label for="n-Travel">Travel</label>
+        <input type="checkbox" id="n-Tech" name="Content Niche" value="Tech"><label for="n-Tech">Tech</label>
+        <input type="checkbox" id="n-Gaming" name="Content Niche" value="Gaming"><label for="n-Gaming">Gaming</label>
+        <input type="checkbox" id="n-Entertainment" name="Content Niche" value="Entertainment"><label for="n-Entertainment">Entertainment</label>
+        <input type="checkbox" id="n-Dance" name="Content Niche" value="Dance"><label for="n-Dance">Dance</label>
+        <input type="checkbox" id="n-DIY" name="Content Niche" value="DIY / Creative"><label for="n-DIY">DIY / Creative</label>
+        <input type="checkbox" id="n-Finance" name="Content Niche" value="Finance"><label for="n-Finance">Finance</label>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="field">
+        <label>Instagram Followers</label>
+        <input type="number" name="Instagram Followers" placeholder="0" min="0" />
+      </div>
+      <div class="field">
+        <label>TikTok Followers</label>
+        <input type="number" name="TikTok Followers" placeholder="0" min="0" />
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="field">
+        <label>YouTube Subscribers</label>
+        <input type="number" name="YouTube Subscribers" placeholder="0" min="0" />
+      </div>
+      <div class="field">
+        <label>Avg Views Per Post</label>
+        <input type="number" name="Avg Views Per Post" placeholder="0" min="0" />
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Engagement Rate %</label>
+      <input type="number" name="Engagement Rate %" placeholder="e.g. 4.5" min="0" max="100" step="0.1" />
+    </div>
+
+    <div class="nav">
+      <button type="button" class="btn btn-back" onclick="go(0)">← Back</button>
+      <button type="button" class="btn btn-next" onclick="go(2)">Next →</button>
+    </div>
+  </div>
+
+  <!-- SECTION 2: Audience -->
+  <div class="section" id="sec-2">
+    <div class="section-title">Your audience</div>
+    <div class="section-sub">Who's watching — this helps us match you to the right brands.</div>
+
+    <div class="grid-2">
+      <div class="field">
+        <label>Audience Age Range</label>
+        <select name="Audience Age Range">
+          <option value="">— Select —</option>
+          <option>13-17</option>
+          <option>18-24</option>
+          <option>25-34</option>
+          <option>35-44</option>
+          <option>45+</option>
+          <option>Mixed / All Ages</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Audience Location</label>
+        <input type="text" name="Audience Location" placeholder="e.g. US, Worldwide" />
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Content Style</label>
+      <div class="pill-group">
+        <input type="checkbox" id="cs-Trending" name="Content Style" value="Trending / Viral"><label for="cs-Trending">Trending / Viral</label>
+        <input type="checkbox" id="cs-Tutorial" name="Content Style" value="Tutorial / How-To"><label for="cs-Tutorial">Tutorial / How-To</label>
+        <input type="checkbox" id="cs-DITL" name="Content Style" value="Day in the Life"><label for="cs-DITL">Day in the Life</label>
+        <input type="checkbox" id="cs-Reviews" name="Content Style" value="Reviews / Unboxing"><label for="cs-Reviews">Reviews / Unboxing</label>
+        <input type="checkbox" id="cs-BTS" name="Content Style" value="Behind the Scenes"><label for="cs-BTS">Behind the Scenes</label>
+        <input type="checkbox" id="cs-Cinematic" name="Content Style" value="Cinematic / Aesthetic"><label for="cs-Cinematic">Cinematic / Aesthetic</label>
+        <input type="checkbox" id="cs-Comedy" name="Content Style" value="Comedy / Skits"><label for="cs-Comedy">Comedy / Skits</label>
+        <input type="checkbox" id="cs-Story" name="Content Style" value="Story Time"><label for="cs-Story">Story Time</label>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Industries You're Open To Work With</label>
+      <div class="pill-group">
+        <input type="checkbox" id="i-Music" name="Industries Open To" value="Music"><label for="i-Music">Music</label>
+        <input type="checkbox" id="i-Fashion" name="Industries Open To" value="Fashion"><label for="i-Fashion">Fashion</label>
+        <input type="checkbox" id="i-Beauty" name="Industries Open To" value="Beauty"><label for="i-Beauty">Beauty</label>
+        <input type="checkbox" id="i-Food" name="Industries Open To" value="Food & Beverage"><label for="i-Food">Food & Beverage</label>
+        <input type="checkbox" id="i-Fitness" name="Industries Open To" value="Fitness & Wellness"><label for="i-Fitness">Fitness & Wellness</label>
+        <input type="checkbox" id="i-Tech" name="Industries Open To" value="Tech & Apps"><label for="i-Tech">Tech & Apps</label>
+        <input type="checkbox" id="i-Entertainment" name="Industries Open To" value="Entertainment"><label for="i-Entertainment">Entertainment</label>
+        <input type="checkbox" id="i-Gaming" name="Industries Open To" value="Gaming"><label for="i-Gaming">Gaming</label>
+        <input type="checkbox" id="i-Lifestyle" name="Industries Open To" value="Lifestyle"><label for="i-Lifestyle">Lifestyle</label>
+        <input type="checkbox" id="i-Finance" name="Industries Open To" value="Finance"><label for="i-Finance">Finance</label>
+        <input type="checkbox" id="i-Travel" name="Industries Open To" value="Travel"><label for="i-Travel">Travel</label>
+      </div>
+    </div>
+
+    <div class="nav">
+      <button type="button" class="btn btn-back" onclick="go(1)">← Back</button>
+      <button type="button" class="btn btn-next" onclick="go(3)">Next →</button>
+    </div>
+  </div>
+
+  <!-- SECTION 3: Deals & Brands -->
+  <div class="section" id="sec-3">
+    <div class="section-title">Deals & brands</div>
+    <div class="section-sub">What you want out of partnerships.</div>
+
+    <div class="field">
+      <label>Preferred Deal Type</label>
+      <div class="pill-group">
+        <input type="checkbox" id="dt-UGC" name="Preferred Deal Type" value="UGC Deal"><label for="dt-UGC">UGC Deal</label>
+        <input type="checkbox" id="dt-Ambassador" name="Preferred Deal Type" value="Brand Ambassador"><label for="dt-Ambassador">Brand Ambassador</label>
+        <input type="checkbox" id="dt-Spark" name="Preferred Deal Type" value="Spark Code"><label for="dt-Spark">Spark Code</label>
+        <input type="checkbox" id="dt-Paid" name="Preferred Deal Type" value="Paid Post"><label for="dt-Paid">Paid Post</label>
+        <input type="checkbox" id="dt-Gifted" name="Preferred Deal Type" value="Gifted / PR"><label for="dt-Gifted">Gifted / PR</label>
+        <input type="checkbox" id="dt-Affiliate" name="Preferred Deal Type" value="Affiliate"><label for="dt-Affiliate">Affiliate</label>
+        <input type="checkbox" id="dt-LT" name="Preferred Deal Type" value="Long-Term Partnership"><label for="dt-LT">Long-Term Partnership</label>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Rate Range</label>
+      <select name="Rate Range">
+        <option value="">— Select —</option>
+        <option>Under $500</option>
+        <option>$500 - $1K</option>
+        <option>$1K - $5K</option>
+        <option>$5K - $10K</option>
+        <option>$10K+</option>
+        <option>Open to Discuss</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Brands You Already Love</label>
+      <textarea name="Brands They Already Love" placeholder="Brands you'd naturally create content for..."></textarea>
+    </div>
+
+    <div class="field">
+      <label>Past Brand Deals</label>
+      <textarea name="Past Brand Deals" placeholder="Any previous paid or gifted partnerships..."></textarea>
+    </div>
+
+    <div class="grid-2">
+      <div class="field">
+        <label>Portfolio URL</label>
+        <input type="url" name="Portfolio URL" placeholder="https://" />
+      </div>
+      <div class="field">
+        <label>Media Kit URL</label>
+        <input type="url" name="Media Kit URL" placeholder="https://" />
+      </div>
+    </div>
+
+    <div class="nav">
+      <button type="button" class="btn btn-back" onclick="go(2)">← Back</button>
+      <button type="button" class="btn btn-next" onclick="go(4)">Next →</button>
+    </div>
+  </div>
+
+  <!-- SECTION 4: Partnership -->
+  <div class="section" id="sec-4">
+    <div class="section-title">Producer partnership</div>
+    <div class="section-sub">This is where we find out if we're a real fit.</div>
+
+    <div class="field">
+      <label>What production support do you want?</label>
+      <div class="pill-group">
+        <input type="checkbox" id="pp-Script" name="Producer Partnership Interest" value="Script Writing"><label for="pp-Script">Script Writing</label>
+        <input type="checkbox" id="pp-Edit" name="Producer Partnership Interest" value="Video Editing"><label for="pp-Edit">Video Editing</label>
+        <input type="checkbox" id="pp-Strategy" name="Producer Partnership Interest" value="Content Strategy"><label for="pp-Strategy">Content Strategy</label>
+        <input type="checkbox" id="pp-Posting" name="Producer Partnership Interest" value="Posting & Scheduling"><label for="pp-Posting">Posting & Scheduling</label>
+        <input type="checkbox" id="pp-Sound" name="Producer Partnership Interest" value="Sound / Music Licensing"><label for="pp-Sound">Sound / Music</label>
+        <input type="checkbox" id="pp-Fan" name="Producer Partnership Interest" value="Fan Page Management"><label for="pp-Fan">Fan Page Management</label>
+        <input type="checkbox" id="pp-Deals" name="Producer Partnership Interest" value="Brand Deal Negotiation"><label for="pp-Deals">Brand Deal Negotiation</label>
+        <input type="checkbox" id="pp-Full" name="Producer Partnership Interest" value="Full Production"><label for="pp-Full">Full Production</label>
+        <input type="checkbox" id="pp-Spark" name="Producer Partnership Interest" value="Spark Ad Management"><label for="pp-Spark">Spark Ad Management</label>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Content Rights Status</label>
+      <select name="Content Rights Status">
+        <option value="">— Select —</option>
+        <option>Owns Full Rights</option>
+        <option>Shared Rights</option>
+        <option>Label / Management Owned</option>
+        <option>Brand Owned</option>
+        <option>Unclear / Need to Discuss</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>IP / Content Series You Own</label>
+      <textarea name="IP / Content Series They Own" placeholder="Any recurring series, characters, sounds, or formats that are uniquely yours..."></textarea>
+    </div>
+
+    <div class="field">
+      <label>What would make you sign with a producer?</label>
+      <textarea name="What Would Make You Sign with a Producer" placeholder="Revenue share, creative control, what matters most to you..."></textarea>
+    </div>
+
+    <div class="field">
+      <label>Dream Brand Partnerships</label>
+      <textarea name="Dream Brand Partnerships" placeholder="If you could work with any brand right now, who and why?"></textarea>
+    </div>
+
+    <div class="error-msg" id="error-msg">Something went wrong. Please try again.</div>
+
+    <div class="nav">
+      <button type="button" class="btn btn-back" onclick="go(3)">← Back</button>
+      <button type="submit" class="btn btn-submit" id="submit-btn">Submit →</button>
+    </div>
+  </div>
+
+</form>
+
+<!-- Success -->
+<div id="success">
+  <div class="check">✦</div>
+  <h2>You're in.</h2>
+  <p>We'll review your profile and reach out within 48 hours.<br>Talk soon.</p>
+</div>
+
+<script>
+  const WORKER_URL = "https://florra-intake-proxy.YOUR-SUBDOMAIN.workers.dev";
+
+  const totalSections = 5;
+  let current = 0;
+
+  function go(n) {
+    // Validate required fields in current section before moving forward
+    if (n > current) {
+      const sec = document.getElementById("sec-" + current);
+      const required = sec.querySelectorAll("[required]");
+      for (const el of required) {
+        if (!el.value.trim()) {
+          el.focus();
+          el.style.borderColor = "#f87171";
+          setTimeout(() => el.style.borderColor = "", 2000);
+          return;
+        }
+      }
+    }
+
+    document.getElementById("sec-" + current).classList.remove("active");
+    document.getElementById("lbl-" + current).classList.remove("active");
+    current = n;
+    document.getElementById("sec-" + current).classList.add("active");
+    document.getElementById("lbl-" + current).classList.add("active");
+    document.getElementById("progress-fill").style.width = ((current + 1) / totalSections * 100) + "%";
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  document.getElementById("intake-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById("submit-btn");
+    const errEl = document.getElementById("error-msg");
+    btn.disabled = true;
+    btn.textContent = "Submitting…";
+    errEl.style.display = "none";
+
+    const fields = {};
+    const fd = new FormData(e.target);
+
+    // Single-value fields
+    for (const [k, v] of fd.entries()) {
+      if (!v) continue;
+      const el = e.target.querySelector(`[name="${k}"]`);
+      if (el && el.type === "checkbox") continue; // handled below
+      if (el && el.type === "number") { fields[k] = parseFloat(v); continue; }
+      fields[k] = v;
+    }
+
+    // Multi-select checkboxes
+    const multiNames = [
+      "Content Niche", "Preferred Deal Type", "Content Style",
+      "Industries Open To", "Producer Partnership Interest"
+    ];
+    for (const name of multiNames) {
+      const checked = [...e.target.querySelectorAll(`[name="${name}"]:checked`)].map(c => c.value);
+      if (checked.length) fields[name] = checked;
+    }
+
+    // Submission Date
+    fields["Submission Date"] = new Date().toISOString();
+
+    try {
+      const res = await fetch(WORKER_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fields }),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      document.getElementById("intake-form").style.display = "none";
+      document.querySelector(".progress-wrap").style.display = "none";
+      document.getElementById("success").style.display = "block";
+    } catch (err) {
+      errEl.textContent = "Something went wrong: " + err.message;
+      errEl.style.display = "block";
+      btn.disabled = false;
+      btn.textContent = "Submit →";
+    }
+  });
+</script>
+</body>
+</html>
