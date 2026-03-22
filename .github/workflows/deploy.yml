@@ -1,4 +1,4 @@
-name: Deploy to Cloudflare Workers
+name: Deploy to Cloudflare
 
 on:
   push:
@@ -6,12 +6,12 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy:
+  deploy-worker:
+    name: Deploy Worker
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Deploy Worker
+      - name: Deploy intake proxy Worker
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -19,3 +19,14 @@ jobs:
             AIRTABLE_PAT
         env:
           AIRTABLE_PAT: ${{ secrets.AIRTABLE_PAT }}
+
+  deploy-pages:
+    name: Deploy Pages (florra.club)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy intake form to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          command: pages deploy public/ --project-name=florra --commit-dirty=true
