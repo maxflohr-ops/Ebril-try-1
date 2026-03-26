@@ -25,6 +25,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Create Pages project if it doesn't exist
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          command: pages project create florra --production-branch=main
+        continue-on-error: true
       - name: Deploy intake form to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
         with:
