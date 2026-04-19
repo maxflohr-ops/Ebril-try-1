@@ -1,0 +1,172 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                  String   @id @default(uuid())
+  patreonUserId       String   @unique
+  email               String?
+  displayName         String?
+  avatarUrl           String?
+  dob                 DateTime?
+  patreonAccessToken  String?
+  patreonRefreshToken String?
+  patreonTokenExpires DateTime?
+  currentTierId       String?
+  currentTier         Tier?    @relation(fields: [currentTierId], references: [id])
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  pledges      Pledge[]
+  transactions PointTransaction[]
+  redemptions  Redemption[]
+
+  @@index([currentTierId])
+}
+
+model Pledge {
+  id               String       @id @default(uuid())
+  userId           String
+  user             User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  patreonPledgeId  String       @unique
+  amountCents      Int
+  currency         String       @default("USD")
+  status           PledgeStatus
+  startedAt        DateTime
+  lastChargedAt    DateTime?
+  updatedAt        DateTime     @updatedAt
+
+  @@index([userId])
+}
+
+enum PledgeStatus {
+  active
+  paused
+  declined
+  cancelled
+}
+
+model PointTransaction {
+  id        String            @id @default(uuid())
+  userId    String
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  delta     Int
+  reason    TransactionReason
+  refId     String?
+  expiresAt DateTime?
+  createdAt DateTime          @default(now())
+
+  @@index([userId])
+  @@index([userId, expiresAt])
+}
+
+enum TransactionReason {
+  pledge_charge
+  campaign_bonus
+  birthday
+  referral
+  streak
+  manual_adjust
+  redemption
+  expiry
+  signup_bonus
+}
+
+model Tier {
+  id                    String @id @default(uuid())
+  name                  String @unique
+  sortOrder             Int    @unique
+  thresholdCentsPerMonth Int
+  multiplier            Float  @default(1.0)
+  perks                 Json   @default("[]")
+
+  users   User[]
+  rewards Reward[]
+}
+
+model Campaign {
+  id          String   @id @default(uuid())
+  name        String
+  multiplier  Float    @default(1.0)
+  flatBonus   Int?
+  startsAt    DateTime
+  endsAt      DateTime
+  tierFilter  Json?
+  createdAt   DateTime @default(now())
+
+  @@index([startsAt, endsAt])
+}
+
+model Reward {
+  id           String     @id @default(uuid())
+  name         String
+  description  String
+  imageUrl     String?
+  costPoints   Int
+  stock        Int?
+  tierRequiredId String?
+  tierRequired Tier?      @relation(fields: [tierRequiredId], references: [id])
+  type         RewardType
+  active       Boolean    @default(true)
+  createdAt    DateTime   @default(now())
+
+  redemptions Redemption[]
+}
+
+enum RewardType {
+  merch
+  signed
+  call_1on1
+  content_unlock
+  discount_code
+}
+
+model Redemption {
+  id               String           @id @default(uuid())
+  userId           String
+  user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rewardId         String
+  reward           Reward           @relation(fields: [rewardId], references: [id])
+  costPoints       Int
+  status           RedemptionStatus @default(pending)
+  shippingAddress  Json?
+  fulfillmentNotes String?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  @@index([userId])
+  @@index([status])
+}
+
+enum RedemptionStatus {
+  pending
+  approved
+  shipped
+  delivered
+  cancelled
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  actorId   String
+  action    String
+  targetId  String?
+  payload   Json?
+  createdAt DateTime @default(now())
+
+  @@index([actorId])
+  @@index([createdAt])
+}
+
+model WebhookEvent {
+  id         String   @id @default(uuid())
+  source     String
+  externalId String   @unique
+  payload    Json
+  receivedAt DateTime @default(now())
+}

@@ -218,7 +218,7 @@ Digital rewards (content unlock, discount code) auto-fulfill on redemption — n
 
 ## 13. Milestones
 
-- **M1 — Auth + mirror (week 1)**: Patreon OAuth, pledge mirror, ledger schema, home screen showing balance from ledger.
+- **M1 — Auth + mirror (week 1)** ✅: Patreon OAuth, pledge mirror, ledger schema, home screen showing balance from ledger.
 - **M2 — Tiers + campaigns (week 2)**: tier evaluation cron, admin campaign CRUD, multiplier applied on charge.
 - **M3 — Rewards + redemption (week 3)**: catalog, redemption flow, admin queue, email notifications.
 - **M4 — Engagement (week 4)**: streaks, birthday, referral, expiry warnings, audit log.
