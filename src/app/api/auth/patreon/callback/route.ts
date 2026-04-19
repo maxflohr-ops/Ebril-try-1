@@ -8,6 +8,7 @@ import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/db";
 import { credit } from "@/lib/points";
 import { recalcUserTier } from "@/lib/tiers";
+import { track } from "@/lib/analytics";
 
 export async function GET(req: NextRequest) {
   const session = await getSession();
@@ -97,6 +98,11 @@ export async function GET(req: NextRequest) {
   }
 
   await recalcUserTier(user.id);
+
+  if (!existing) {
+    await track("auth.first_signup", { referredById: referredById ?? null }, user.id);
+  }
+  await track("auth.connected", {}, user.id);
 
   session.userId = user.id;
   await session.save();

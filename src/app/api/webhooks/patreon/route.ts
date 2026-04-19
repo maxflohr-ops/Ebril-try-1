@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { credit } from "@/lib/points";
 import { recalcUserTier } from "@/lib/tiers";
 import { REFERRAL_BONUS } from "@/lib/streaks";
+import { track } from "@/lib/analytics";
 
 async function maybeReferralBonus(referredUserId: string) {
   const referred = await prisma.user.findUnique({
@@ -116,10 +117,26 @@ export async function POST(req: NextRequest) {
         refId,
         multiplier,
       });
+      await track(
+        "pledge.charged",
+        { amountCents, multiplier },
+        user.id
+      );
+      if (multiplier > 1) {
+        await track("campaign.applied", { multiplier, amountCents }, user.id);
+      }
       await maybeReferralBonus(user.id);
     }
   }
 
-  await recalcUserTier(user.id);
+  const previousTierId = user.currentTierId;
+  const newTier = await recalcUserTier(user.id);
+  if ((newTier?.id ?? null) !== (previousTierId ?? null)) {
+    await track(
+      "tier.changed",
+      { from: previousTierId, to: newTier?.id ?? null },
+      user.id
+    );
+  }
   return NextResponse.json({ ok: true });
 }

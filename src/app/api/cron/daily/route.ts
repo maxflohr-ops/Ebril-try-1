@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { isAuthorizedCron } from "@/lib/cron";
 import { credit, defaultExpiry } from "@/lib/points";
 import { sendEmail } from "@/lib/email";
+import { sendPushToUser } from "@/lib/push";
 import {
   BIRTHDAY_BONUS,
   STREAK_REWARDS,
@@ -58,6 +59,11 @@ async function run(req: NextRequest) {
         text: `Hey ${u.displayName ?? "you"}, ${BIRTHDAY_BONUS} bonus points just landed in your Ebril Rewards balance. Treat yourself.`,
       });
     }
+    await sendPushToUser(u.id, {
+      title: "Happy birthday!",
+      body: `${BIRTHDAY_BONUS} bonus points just landed in your account.`,
+      url: "/rewards",
+    });
   }
 
   // Streak bonuses (only on the 1st of the month so credits don't compound)
@@ -127,6 +133,11 @@ async function run(req: NextRequest) {
           .slice(0, 10)}. Spend them at /rewards before the deadline.`,
       });
     }
+    await sendPushToUser(userId, {
+      title: "Points expiring soon",
+      body: `${agg.points.toLocaleString()} pts expire ${agg.soonest.toISOString().slice(0, 10)}`,
+      url: "/rewards",
+    });
     await prisma.auditLog.create({
       data: {
         actorId: "system",

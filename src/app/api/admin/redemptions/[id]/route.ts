@@ -4,11 +4,19 @@ import { prisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/admin";
 import { logAudit } from "@/lib/audit";
 import { sendEmail } from "@/lib/email";
+import { sendPushToUser } from "@/lib/push";
+import { track } from "@/lib/analytics";
 
 const PatchSchema = z.object({
   status: z.enum(["approved", "shipped", "delivered", "cancelled"]),
   fulfillmentNotes: z.string().max(2000).optional(),
 });
+
+function subjectFor(status: string, rewardName: string) {
+  if (status === "shipped") return `Your ${rewardName} is on the way`;
+  if (status === "cancelled") return "Redemption cancelled — points returned";
+  return `Redemption update: ${rewardName}`;
+}
 
 export async function PATCH(
   req: NextRequest,
@@ -64,13 +72,9 @@ export async function PATCH(
 
   await logAudit(admin.userId, `redemption.${status}`, redemption.id, { fulfillmentNotes });
 
+  const subject = subjectFor(status, redemption.reward.name);
+
   if (redemption.user.email) {
-    const subject =
-      status === "shipped"
-        ? `Your ${redemption.reward.name} is on the way`
-        : status === "cancelled"
-          ? `Redemption cancelled — points returned`
-          : `Redemption update: ${redemption.reward.name}`;
     await sendEmail({
       to: redemption.user.email,
       subject,
@@ -80,6 +84,18 @@ export async function PATCH(
           : `Status: ${status}.${fulfillmentNotes ? `\n\nNotes: ${fulfillmentNotes}` : ""}`,
     });
   }
+
+  await sendPushToUser(redemption.userId, {
+    title: subject,
+    body: status === "cancelled" ? "Points refunded." : `Status: ${status}`,
+    url: "/redemptions",
+  });
+
+  await track(
+    "redemption.status_changed",
+    { redemptionId: redemption.id, status },
+    redemption.userId
+  );
 
   return NextResponse.json({ redemption });
 }

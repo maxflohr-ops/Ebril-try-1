@@ -15,7 +15,23 @@ Patreon-connected loyalty app for Ebril. See [`SPEC.md`](./SPEC.md) for the full
 - [x] **M2** — Tier cron, admin campaign CRUD, multiplier on charge
 - [x] **M3** — Rewards catalog, redemption flow, admin queue, emails
 - [x] **M4** — Streaks, birthday, referral, expiry warnings, audit log
-- [ ] **M5** — PWA, push notifications, analytics, load test
+- [x] **M5** — PWA, push notifications, analytics, load test
+
+## Load testing
+
+Install [k6](https://k6.io) and run:
+
+```bash
+BASE_URL=https://staging.ebril.app \
+COOKIE="ebril_session=..." \
+REWARD_ID=<uuid> \
+k6 run load/redemption.js
+```
+
+The scenario ramps to 100 RPS against `/api/redemptions` and asserts no
+5xx errors plus p95 latency under 500ms. Use a content-unlock reward
+with unlimited stock to isolate the ledger-write path; switch to a
+limited-stock reward to verify there are no oversells.
 
 ## Getting started
 

@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { getSession } from "@/lib/session";
 import { getBalance } from "@/lib/points";
 import { sendEmail } from "@/lib/email";
+import { track } from "@/lib/analytics";
 
 const ShippingSchema = z.object({
   name: z.string().min(1),
@@ -121,6 +122,17 @@ export async function POST(req: NextRequest) {
         }`,
       });
     }
+
+    await track(
+      "redemption.created",
+      {
+        rewardId: result.reward.id,
+        rewardType: result.reward.type,
+        costPoints: result.reward.costPoints,
+        autoApproved: result.redemption.status === "approved",
+      },
+      userId
+    );
 
     return NextResponse.json({ redemption: result.redemption });
   } catch (err) {

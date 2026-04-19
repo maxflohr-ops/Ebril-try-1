@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { getSession } from "@/lib/session";
 import { consecutiveChargeMonths, STREAK_REWARDS } from "@/lib/streaks";
 import { ProfileForm } from "./ProfileForm";
+import { PushToggle } from "@/components/PushToggle";
 
 export const dynamic = "force-dynamic";
 
@@ -35,6 +36,8 @@ export default async function ProfilePage() {
   return (
     <main style={{ maxWidth: 640, margin: "0 auto", padding: 24 }}>
       <h1 style={{ marginTop: 0 }}>Profile</h1>
+
+      <PushToggle />
 
       <section
         style={{
