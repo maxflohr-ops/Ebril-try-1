@@ -3,6 +3,27 @@ import { verifyWebhookSignature } from "@/lib/patreon";
 import { prisma } from "@/lib/db";
 import { credit } from "@/lib/points";
 import { recalcUserTier } from "@/lib/tiers";
+import { REFERRAL_BONUS } from "@/lib/streaks";
+
+async function maybeReferralBonus(referredUserId: string) {
+  const referred = await prisma.user.findUnique({
+    where: { id: referredUserId },
+    select: { referredById: true },
+  });
+  if (!referred?.referredById) return;
+  const refId = `referral:${referredUserId}`;
+  const exists = await prisma.pointTransaction.findFirst({
+    where: { userId: referred.referredById, refId, reason: "referral" },
+  });
+  if (exists) return;
+  await credit({
+    userId: referred.referredById,
+    amountCents: 0,
+    reason: "referral",
+    refId,
+    flatBonus: REFERRAL_BONUS,
+  });
+}
 
 export const runtime = "nodejs";
 
@@ -95,6 +116,7 @@ export async function POST(req: NextRequest) {
         refId,
         multiplier,
       });
+      await maybeReferralBonus(user.id);
     }
   }
 

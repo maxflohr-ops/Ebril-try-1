@@ -24,6 +24,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
           <Link href="/admin/campaigns">Campaigns</Link>
           <Link href="/admin/rewards">Rewards</Link>
           <Link href="/admin/redemptions">Redemptions</Link>
+          <Link href="/admin/audit">Audit log</Link>
         </nav>
       </aside>
       <main style={{ padding: 24 }}>{children}</main>

@@ -82,6 +82,18 @@ export default async function Home() {
         >
           My redemptions
         </Link>
+        <Link
+          href="/profile"
+          style={{
+            padding: "10px 16px",
+            background: "var(--bg-card)",
+            border: "1px solid var(--border)",
+            borderRadius: 999,
+            fontWeight: 600,
+          }}
+        >
+          Profile
+        </Link>
       </nav>
 
       <section style={{ marginTop: 32 }}>

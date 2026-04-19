@@ -26,6 +26,21 @@ export async function GET(req: NextRequest) {
 
   const expiresAt = new Date(Date.now() + tokens.expires_in * 1000);
 
+  const existing = await prisma.user.findUnique({
+    where: { patreonUserId: identity.id },
+    select: { id: true, referredById: true },
+  });
+
+  let referredById: string | undefined;
+  if (!existing && session.pendingReferralCode) {
+    const referrer = await prisma.user.findUnique({
+      where: { referralCode: session.pendingReferralCode },
+      select: { id: true },
+    });
+    referredById = referrer?.id;
+  }
+  session.pendingReferralCode = undefined;
+
   const user = await prisma.user.upsert({
     where: { patreonUserId: identity.id },
     update: {
@@ -44,6 +59,7 @@ export async function GET(req: NextRequest) {
       patreonAccessToken: tokens.access_token,
       patreonRefreshToken: tokens.refresh_token,
       patreonTokenExpires: expiresAt,
+      referredById,
     },
   });
 

@@ -19,6 +19,10 @@ model User {
   patreonTokenExpires DateTime?
   currentTierId       String?
   currentTier         Tier?    @relation(fields: [currentTierId], references: [id])
+  referralCode        String   @unique @default(cuid())
+  referredById        String?
+  referredBy          User?    @relation("Referrals", fields: [referredById], references: [id])
+  referrals           User[]   @relation("Referrals")
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
 
@@ -27,6 +31,7 @@ model User {
   redemptions  Redemption[]
 
   @@index([currentTierId])
+  @@index([referredById])
 }
 
 model Pledge {
