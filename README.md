@@ -13,7 +13,7 @@ Patreon-connected loyalty app for Ebril. See [`SPEC.md`](./SPEC.md) for the full
 
 - [x] **M1** — Patreon OAuth, pledge mirror, ledger schema, home screen balance/tier
 - [x] **M2** — Tier cron, admin campaign CRUD, multiplier on charge
-- [ ] **M3** — Rewards catalog, redemption flow, admin queue, emails
+- [x] **M3** — Rewards catalog, redemption flow, admin queue, emails
 - [ ] **M4** — Streaks, birthday, referral, expiry warnings, audit log
 - [ ] **M5** — PWA, push notifications, analytics, load test
 

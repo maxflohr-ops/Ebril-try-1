@@ -51,6 +51,39 @@ export default async function Home() {
         />
       </div>
 
+      <nav
+        style={{
+          display: "flex",
+          gap: 12,
+          marginTop: 20,
+        }}
+      >
+        <Link
+          href="/rewards"
+          style={{
+            padding: "10px 16px",
+            background: "var(--bg-card)",
+            border: "1px solid var(--border)",
+            borderRadius: 999,
+            fontWeight: 600,
+          }}
+        >
+          Browse rewards
+        </Link>
+        <Link
+          href="/redemptions"
+          style={{
+            padding: "10px 16px",
+            background: "var(--bg-card)",
+            border: "1px solid var(--border)",
+            borderRadius: 999,
+            fontWeight: 600,
+          }}
+        >
+          My redemptions
+        </Link>
+      </nav>
+
       <section style={{ marginTop: 32 }}>
         <h3 style={{ fontSize: 16, color: "var(--text-muted)", fontWeight: 600 }}>
           How to earn

@@ -22,6 +22,8 @@ export default async function AdminLayout({ children }: { children: ReactNode })
         <nav style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           <Link href="/admin">Dashboard</Link>
           <Link href="/admin/campaigns">Campaigns</Link>
+          <Link href="/admin/rewards">Rewards</Link>
+          <Link href="/admin/redemptions">Redemptions</Link>
         </nav>
       </aside>
       <main style={{ padding: 24 }}>{children}</main>
