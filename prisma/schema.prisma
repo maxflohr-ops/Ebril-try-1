@@ -86,6 +86,8 @@ enum TransactionReason {
   ritual_claim
   clip_approved
   show_checkin
+  gift_sent
+  gift_received
 }
 
 model Tier {
@@ -605,4 +607,16 @@ model DropSubscription {
   @@unique([userId, songId])
   @@index([userId])
   @@index([songId])
+}
+
+model Gift {
+  id         String   @id @default(uuid())
+  fromUserId String
+  toUserId   String
+  amount     Int
+  note       String?
+  createdAt  DateTime @default(now())
+
+  @@index([fromUserId, createdAt])
+  @@index([toUserId, createdAt])
 }

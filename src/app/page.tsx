@@ -216,6 +216,7 @@ export default async function Home() {
         {shopifyStore && (
           <Link href="/shop" className="nav-chip">merch</Link>
         )}
+        <Link href="/gift" className="nav-chip">gift</Link>
         <Link href="/redemptions" className="nav-chip">redemptions</Link>
         <Link href="/points/buy" className="nav-chip">buy points</Link>
         <Link href="/profile" className="nav-chip">profile</Link>

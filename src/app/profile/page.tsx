@@ -36,13 +36,26 @@ export default async function ProfilePage() {
   });
   if (!user) redirect("/");
 
-  const [streak, earnedAgg] = await Promise.all([
+  const [streak, earnedAgg, recentGifts] = await Promise.all([
     consecutiveChargeMonths(user.id),
     prisma.pointTransaction.aggregate({
       _sum: { delta: true },
       where: { userId: user.id, delta: { gt: 0 } },
     }),
+    prisma.gift.findMany({
+      where: { toUserId: user.id },
+      orderBy: { createdAt: "desc" },
+      take: 3,
+    }),
   ]);
+  const giftSenderIds = Array.from(new Set(recentGifts.map((g) => g.fromUserId)));
+  const giftSenders = giftSenderIds.length
+    ? await prisma.user.findMany({
+        where: { id: { in: giftSenderIds } },
+        select: { id: true, displayName: true, avatarUrl: true },
+      })
+    : [];
+  const giftSenderMap = new Map(giftSenders.map((g) => [g.id, g]));
   const totalEarned = earnedAgg._sum.delta ?? 0;
   const baseUrl = process.env.APP_BASE_URL ?? "";
   const referralUrl = `${baseUrl.replace(/\/$/, "")}/r/${user.referralCode}`;
@@ -133,6 +146,87 @@ export default async function ProfilePage() {
       </div>
 
       <PushToggle />
+
+      {recentGifts.length > 0 && (
+        <div
+          className="surface"
+          style={{
+            padding: 20,
+            marginBottom: 16,
+            background:
+              "linear-gradient(160deg, rgba(216,155,122,0.12) 0%, rgba(30,24,21,0.95) 70%)",
+            borderColor: "rgba(216,155,122,0.28)",
+          }}
+        >
+          <div className="eyebrow" style={{ color: "var(--accent)" }}>
+            recent gifts from the room
+          </div>
+          <div style={{ marginTop: 10, display: "grid", gap: 10 }}>
+            {recentGifts.map((g) => {
+              const s = giftSenderMap.get(g.fromUserId);
+              return (
+                <div
+                  key={g.id}
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "auto 1fr auto",
+                    gap: 12,
+                    alignItems: "center",
+                  }}
+                >
+                  {s?.avatarUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={s.avatarUrl}
+                      alt=""
+                      width={30}
+                      height={30}
+                      style={{ borderRadius: 999 }}
+                    />
+                  ) : (
+                    <div
+                      style={{
+                        width: 30,
+                        height: 30,
+                        borderRadius: 999,
+                        background: "#1E1815",
+                      }}
+                    />
+                  )}
+                  <div>
+                    <div style={{ fontSize: 14 }}>
+                      {s?.displayName?.toLowerCase() ?? "someone"}
+                    </div>
+                    {g.note && (
+                      <div
+                        style={{
+                          color: "var(--text-muted)",
+                          fontSize: 12,
+                          fontStyle: "italic",
+                          marginTop: 2,
+                        }}
+                      >
+                        &ldquo;{g.note}&rdquo;
+                      </div>
+                    )}
+                  </div>
+                  <div
+                    className="serif"
+                    style={{
+                      fontSize: 18,
+                      fontWeight: 500,
+                      color: "var(--accent)",
+                      fontVariantNumeric: "tabular-nums",
+                    }}
+                  >
+                    +{g.amount.toLocaleString()}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       <div className="surface" style={{ padding: 20, marginBottom: 16 }}>
         <div className="eyebrow">bring someone in</div>
