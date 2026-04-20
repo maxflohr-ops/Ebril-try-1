@@ -13,9 +13,11 @@ const PatchSchema = z.object({
 });
 
 function subjectFor(status: string, rewardName: string) {
-  if (status === "shipped") return `Your ${rewardName} is on the way`;
-  if (status === "cancelled") return "Redemption cancelled — points returned";
-  return `Redemption update: ${rewardName}`;
+  const n = rewardName.toLowerCase();
+  if (status === "shipped") return `${n} is on the way`;
+  if (status === "delivered") return `${n} should be with you`;
+  if (status === "cancelled") return "small mix-up — your points are back";
+  return `a note about ${n}`;
 }
 
 export async function PATCH(
@@ -80,14 +82,25 @@ export async function PATCH(
       subject,
       text:
         status === "cancelled"
-          ? `We had to cancel your redemption for ${redemption.reward.name}. Your ${redemption.costPoints} points have been credited back.`
-          : `Status: ${status}.${fulfillmentNotes ? `\n\nNotes: ${fulfillmentNotes}` : ""}`,
+          ? `small mix-up with your ${redemption.reward.name.toLowerCase()} — the ${redemption.costPoints} points are back in your balance, no harm done.`
+          : status === "shipped"
+            ? `it's on the way to you.${fulfillmentNotes ? `\n\n${fulfillmentNotes}` : ""}`
+            : status === "delivered"
+              ? `should be with you by now. hope it feels the way it's supposed to.${fulfillmentNotes ? `\n\n${fulfillmentNotes}` : ""}`
+              : `a quick note: ${status}.${fulfillmentNotes ? `\n\n${fulfillmentNotes}` : ""}`,
     });
   }
 
   await sendPushToUser(redemption.userId, {
     title: subject,
-    body: status === "cancelled" ? "Points refunded." : `Status: ${status}`,
+    body:
+      status === "cancelled"
+        ? "your points are back."
+        : status === "shipped"
+          ? "it's on the way."
+          : status === "delivered"
+            ? "should be with you."
+            : `status: ${status}.`,
     url: "/redemptions",
   });
 

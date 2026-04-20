@@ -75,13 +75,13 @@ export async function POST(req: NextRequest) {
     if (user?.email) {
       await sendEmail({
         to: user.email,
-        subject: "Points added to your balance",
-        text: `${record.pointsDelta.toLocaleString()} points are now in your Ebril Rewards account.`,
+        subject: "points landed",
+        text: `${record.pointsDelta.toLocaleString()} points are in your balance. thank you for being here.`,
       });
     }
     await sendPushToUser(record.userId, {
-      title: "Points added",
-      body: `${record.pointsDelta.toLocaleString()} pts credited.`,
+      title: "points landed",
+      body: `${record.pointsDelta.toLocaleString()} points are yours.`,
       url: "/",
     });
     await track(

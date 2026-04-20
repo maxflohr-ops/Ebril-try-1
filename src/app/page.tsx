@@ -21,27 +21,50 @@ export default async function Home() {
   ]);
 
   return (
-    <main style={{ maxWidth: 720, margin: "0 auto", padding: 24 }}>
-      <header style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
+    <main
+      style={{
+        maxWidth: 680,
+        margin: "0 auto",
+        padding: "32px 20px 64px",
+        position: "relative",
+      }}
+    >
+      <div className="hero-wash" />
+      <header
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 14,
+          marginBottom: 36,
+        }}
+      >
         {user.avatarUrl && (
+          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={user.avatarUrl}
             alt=""
-            width={48}
-            height={48}
-            style={{ borderRadius: 999 }}
+            width={44}
+            height={44}
+            style={{
+              borderRadius: 999,
+              border: "1px solid rgba(216,155,122,0.35)",
+            }}
           />
         )}
         <div>
-          <div style={{ fontSize: 12, color: "var(--text-muted)" }}>Welcome back</div>
-          <div style={{ fontSize: 20, fontWeight: 700 }}>
-            {user.displayName ?? "Ebril Supporter"}
+          <div className="eyebrow">welcome back</div>
+          <div
+            className="serif"
+            style={{ fontSize: 24, fontWeight: 500, marginTop: 2 }}
+          >
+            {user.displayName?.toLowerCase() ?? "you"}
           </div>
         </div>
       </header>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-        <BalanceCard balance={balance} />
+      <BalanceCard balance={balance} />
+
+      <div style={{ marginTop: 20 }}>
         <TierCard
           tierName={progress.current?.name ?? null}
           nextTierName={progress.next?.name ?? null}
@@ -54,68 +77,35 @@ export default async function Home() {
       <nav
         style={{
           display: "flex",
-          gap: 12,
-          marginTop: 20,
+          flexWrap: "wrap",
+          gap: 10,
+          marginTop: 32,
+          justifyContent: "center",
         }}
       >
-        <Link
-          href="/rewards"
-          style={{
-            padding: "10px 16px",
-            background: "var(--bg-card)",
-            border: "1px solid var(--border)",
-            borderRadius: 999,
-            fontWeight: 600,
-          }}
-        >
-          Browse rewards
-        </Link>
-        <Link
-          href="/redemptions"
-          style={{
-            padding: "10px 16px",
-            background: "var(--bg-card)",
-            border: "1px solid var(--border)",
-            borderRadius: 999,
-            fontWeight: 600,
-          }}
-        >
-          My redemptions
-        </Link>
-        <Link
-          href="/points/buy"
-          style={{
-            padding: "10px 16px",
-            background: "var(--bg-card)",
-            border: "1px solid var(--border)",
-            borderRadius: 999,
-            fontWeight: 600,
-          }}
-        >
-          Buy points
-        </Link>
-        <Link
-          href="/profile"
-          style={{
-            padding: "10px 16px",
-            background: "var(--bg-card)",
-            border: "1px solid var(--border)",
-            borderRadius: 999,
-            fontWeight: 600,
-          }}
-        >
-          Profile
-        </Link>
+        <Link href="/rewards" className="nav-chip">rewards</Link>
+        <Link href="/redemptions" className="nav-chip">redemptions</Link>
+        <Link href="/points/buy" className="nav-chip">buy points</Link>
+        <Link href="/profile" className="nav-chip">profile</Link>
       </nav>
 
-      <section style={{ marginTop: 32 }}>
-        <h3 style={{ fontSize: 16, color: "var(--text-muted)", fontWeight: 600 }}>
-          How to earn
-        </h3>
-        <ul style={{ lineHeight: 1.8, paddingLeft: 18 }}>
-          <li>10 pts per $1 pledged, auto-credited on charge.</li>
-          <li>Streak bonuses at 3, 6, and 12 consecutive months.</li>
-          <li>Birthday bonus, referral bonus, occasional double-point windows.</li>
+      <section style={{ marginTop: 48 }}>
+        <div className="eyebrow" style={{ marginBottom: 12 }}>how to earn</div>
+        <ul
+          style={{
+            margin: 0,
+            padding: 0,
+            listStyle: "none",
+            display: "grid",
+            gap: 12,
+            color: "var(--text-muted)",
+            fontSize: 14,
+            lineHeight: 1.6,
+          }}
+        >
+          <li>10 points for every dollar pledged, the moment patreon charges.</li>
+          <li>small bonuses at 3, 6, and 12 months of staying.</li>
+          <li>a little something on your birthday, and when you bring a friend.</li>
         </ul>
       </section>
     </main>
@@ -126,28 +116,30 @@ function Landing() {
   return (
     <main
       style={{
-        maxWidth: 560,
+        maxWidth: 520,
         margin: "0 auto",
-        padding: 48,
+        padding: "96px 24px",
         textAlign: "center",
+        position: "relative",
       }}
     >
-      <h1 style={{ fontSize: 40, fontWeight: 800, marginBottom: 12 }}>Ebril Rewards</h1>
-      <p style={{ color: "var(--text-muted)", marginBottom: 32 }}>
-        Link your Patreon to start earning points, unlocking tiers, and redeeming perks.
-      </p>
-      <Link
-        href="/api/auth/patreon"
+      <div className="hero-wash" style={{ height: 560 }} />
+      <div className="eyebrow" style={{ marginBottom: 18 }}>ebril — rewards</div>
+      <h1 style={{ margin: "0 0 18px" }}>
+        a small room for the people who live inside the songs.
+      </h1>
+      <p
         style={{
-          display: "inline-block",
-          background: "linear-gradient(135deg, var(--accent), var(--accent-2))",
-          color: "white",
-          padding: "14px 24px",
-          borderRadius: 999,
-          fontWeight: 700,
+          color: "var(--text-muted)",
+          margin: "0 auto 36px",
+          maxWidth: 380,
+          fontSize: 15,
         }}
       >
-        Connect Patreon
+        earn points when you pledge, keep them warm over time, spend them on things i made with you in mind.
+      </p>
+      <Link href="/api/auth/patreon" className="btn">
+        come inside
       </Link>
     </main>
   );

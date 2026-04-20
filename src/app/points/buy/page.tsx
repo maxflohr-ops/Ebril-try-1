@@ -19,46 +19,55 @@ export default async function BuyPoints({
   });
 
   return (
-    <main style={{ maxWidth: 720, margin: "0 auto", padding: 24 }}>
-      <h1 style={{ marginTop: 0 }}>Buy points</h1>
-      <p style={{ color: "var(--text-muted)" }}>
-        Top up your balance without a Patreon subscription. Points from packs never expire.
+    <main style={{ maxWidth: 720, margin: "0 auto", padding: "32px 20px 64px" }}>
+      <div className="eyebrow">points</div>
+      <h2 style={{ marginTop: 6 }}>top up without a subscription.</h2>
+      <p
+        style={{
+          color: "var(--text-muted)",
+          maxWidth: 460,
+          marginTop: 10,
+          fontSize: 15,
+        }}
+      >
+        for when you don&rsquo;t want a monthly thing but still want to be here. points from a
+        top-up never expire.
       </p>
+
       {searchParams.success && (
         <div
+          className="surface"
           style={{
-            background: "rgba(124, 92, 255, 0.15)",
-            border: "1px solid var(--accent-2)",
-            borderRadius: 8,
-            padding: 12,
-            marginBottom: 16,
+            padding: 16,
+            marginTop: 20,
+            borderColor: "rgba(139,168,136,0.3)",
           }}
         >
-          Payment received — your balance will update as soon as Stripe confirms.
+          <span className="eyebrow" style={{ color: "var(--success)" }}>thank you</span>
+          <div style={{ marginTop: 6, fontSize: 14 }}>
+            stripe has it. your balance will land in a moment.
+          </div>
         </div>
       )}
       {searchParams.canceled && (
-        <div
-          style={{
-            background: "rgba(255, 77, 141, 0.12)",
-            border: "1px solid var(--accent)",
-            borderRadius: 8,
-            padding: 12,
-            marginBottom: 16,
-          }}
-        >
-          Checkout canceled. No charge.
+        <div className="surface" style={{ padding: 16, marginTop: 20 }}>
+          <div style={{ fontSize: 14, color: "var(--text-muted)" }}>
+            no charge. come back whenever.
+          </div>
         </div>
       )}
-      <PackGrid
-        packs={packs.map((p) => ({
-          id: p.id,
-          name: p.name,
-          points: p.points,
-          priceCents: p.priceCents,
-          currency: p.currency,
-        }))}
-      />
+
+      <div style={{ marginTop: 28 }}>
+        <PackGrid
+          packs={packs.map((p) => ({
+            id: p.id,
+            name: p.name,
+            points: p.points,
+            priceCents: p.priceCents,
+            currency: p.currency,
+          }))}
+        />
+      </div>
     </main>
   );
 }

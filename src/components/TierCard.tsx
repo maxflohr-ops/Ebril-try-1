@@ -16,44 +16,38 @@ export function TierCard({
   const toNextCents = nextThresholdCents ? Math.max(0, nextThresholdCents - monthlyCents) : 0;
   return (
     <div
+      className="surface"
       style={{
-        background: "linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%)",
-        borderRadius: 16,
-        padding: 20,
-        color: "white",
+        padding: 24,
+        background: "linear-gradient(160deg, rgba(107,74,94,0.55) 0%, rgba(30,24,21,0.95) 100%)",
       }}
     >
-      <div style={{ fontSize: 12, opacity: 0.8, textTransform: "uppercase", letterSpacing: 1 }}>
-        Current tier
+      <div className="eyebrow">your tier</div>
+      <div
+        className="serif"
+        style={{
+          fontSize: 34,
+          fontWeight: 500,
+          marginTop: 8,
+          lineHeight: 1.1,
+        }}
+      >
+        {tierName ? tierName.toLowerCase() : "unranked"}
       </div>
-      <div style={{ fontSize: 28, fontWeight: 800, marginTop: 4 }}>{tierName ?? "Unranked"}</div>
-      {nextTierName && (
-        <>
-          <div
-            style={{
-              marginTop: 16,
-              background: "rgba(255,255,255,0.25)",
-              height: 8,
-              borderRadius: 999,
-              overflow: "hidden",
-            }}
-          >
-            <div
-              style={{
-                width: `${progressPct}%`,
-                height: "100%",
-                background: "white",
-                transition: "width 400ms",
-              }}
-            />
+      {nextTierName ? (
+        <div style={{ marginTop: 20 }}>
+          <div className="progress">
+            <div className="progress-fill" style={{ width: `${progressPct}%` }} />
           </div>
-          <div style={{ marginTop: 8, fontSize: 13, opacity: 0.9 }}>
-            ${(toNextCents / 100).toFixed(2)}/mo more to reach <b>{nextTierName}</b>
+          <div style={{ marginTop: 14, fontSize: 13, color: "var(--text-muted)" }}>
+            ${(toNextCents / 100).toFixed(2)} a month from{" "}
+            <span style={{ color: "var(--text)" }}>{nextTierName.toLowerCase()}</span>
           </div>
-        </>
-      )}
-      {!nextTierName && (
-        <div style={{ marginTop: 12, fontSize: 13, opacity: 0.9 }}>Top tier unlocked.</div>
+        </div>
+      ) : (
+        <div style={{ marginTop: 16, fontSize: 13, color: "var(--text-muted)" }}>
+          you&rsquo;re as close as it gets. thank you, truly.
+        </div>
       )}
     </div>
   );

@@ -15,34 +15,70 @@ interface Reward {
   tierRequired: { name: string; sortOrder: number } | null;
   affordable: boolean;
   tierUnlocked: boolean;
+  shortfall: number;
 }
 
 const DIGITAL = new Set(["content_unlock", "discount_code"]);
 
+type ToastKind = "info" | "success" | "error";
+interface Toast {
+  id: number;
+  kind: ToastKind;
+  text: string;
+}
+
 export function RewardGrid({ rewards }: { rewards: Reward[] }) {
-  const [busyId, setBusyId] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [toasts, setToasts] = useState<Toast[]>([]);
+
+  function pushToast(kind: ToastKind, text: string) {
+    const id = Date.now() + Math.random();
+    setToasts((t) => [...t, { id, kind, text }]);
+    setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 4000);
+  }
 
   function collectShipping(reward: Reward): Record<string, string> | null | undefined {
     if (DIGITAL.has(reward.type)) return undefined;
-    const name = prompt("Shipping name");
+    const name = prompt("shipping name");
     if (!name) return null;
-    const line1 = prompt("Address line 1");
+    const line1 = prompt("address line 1");
     if (!line1) return null;
-    const city = prompt("City");
+    const city = prompt("city");
     if (!city) return null;
-    const region = prompt("State/Region");
+    const region = prompt("state or region");
     if (!region) return null;
-    const postalCode = prompt("Postal code");
+    const postalCode = prompt("postal code");
     if (!postalCode) return null;
-    const country = prompt("Country (2-letter code, e.g. US)");
+    const country = prompt("country (2-letter code, e.g. us)");
     if (!country || country.length !== 2) return null;
-    return { name, line1, city, region, postalCode, country: country.toUpperCase() };
+    return {
+      name,
+      line1,
+      city,
+      region,
+      postalCode,
+      country: country.toUpperCase(),
+    };
   }
 
   async function redeem(reward: Reward) {
-    setError(null);
+    if (!reward.tierUnlocked) {
+      pushToast("info", `this one opens at ${reward.tierRequired?.name.toLowerCase()}.`);
+      return;
+    }
+    if (!reward.affordable) {
+      pushToast(
+        "info",
+        `you're ${reward.shortfall.toLocaleString()} points away — almost.`
+      );
+      return;
+    }
+    if (reward.stock === 0) {
+      pushToast("info", "this one's gone for now. i'll bring more back.");
+      return;
+    }
+
     const shippingAddress = collectShipping(reward);
     if (shippingAddress === null) return;
 
@@ -55,15 +91,15 @@ export function RewardGrid({ rewards }: { rewards: Reward[] }) {
     setBusyId(null);
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
-      setError(body.error ?? "Failed");
+      pushToast("error", friendlyError(body.error));
       return;
     }
+    pushToast("success", "got it — keeping it safe for you.");
     router.refresh();
-    router.push("/redemptions");
+    setTimeout(() => router.push("/redemptions"), 900);
   }
 
   async function buyCash(reward: Reward) {
-    setError(null);
     const shippingAddress = collectShipping(reward);
     if (shippingAddress === null) return;
 
@@ -75,7 +111,7 @@ export function RewardGrid({ rewards }: { rewards: Reward[] }) {
     });
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
-      setError(body.error ?? "Failed");
+      pushToast("error", friendlyError(body.error));
       setBusyId(null);
       return;
     }
@@ -85,105 +121,145 @@ export function RewardGrid({ rewards }: { rewards: Reward[] }) {
 
   return (
     <>
-      {error && (
-        <div style={{ marginTop: 16, color: "#ff6b6b" }}>Error: {error}</div>
-      )}
       <div
         style={{
-          marginTop: 20,
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
+          gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
           gap: 16,
         }}
       >
         {rewards.map((r) => {
-          const disabled = !r.affordable || !r.tierUnlocked || r.stock === 0;
-          const reason = !r.tierUnlocked
-            ? `Unlocks at ${r.tierRequired?.name}`
-            : !r.affordable
-              ? "Not enough points"
-              : r.stock === 0
-                ? "Out of stock"
-                : null;
+          const locked = !r.tierUnlocked;
+          const oos = r.stock === 0;
+          const dim = locked || !r.affordable || oos;
           return (
             <div
               key={r.id}
+              className="surface"
               style={{
-                background: "var(--bg-card)",
-                border: "1px solid var(--border)",
-                borderRadius: 12,
                 overflow: "hidden",
                 display: "flex",
                 flexDirection: "column",
+                opacity: dim ? 0.55 : 1,
+                transition: "opacity 200ms var(--ease), transform 200ms var(--ease)",
               }}
             >
-              {r.imageUrl && (
-                <img
-                  src={r.imageUrl}
-                  alt=""
-                  style={{ width: "100%", height: 160, objectFit: "cover" }}
+              {r.imageUrl ? (
+                <div style={{ position: "relative" }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={r.imageUrl}
+                    alt=""
+                    style={{
+                      width: "100%",
+                      height: 180,
+                      objectFit: "cover",
+                      filter: dim ? "grayscale(60%)" : "none",
+                    }}
+                  />
+                  <div
+                    style={{
+                      position: "absolute",
+                      inset: 0,
+                      background:
+                        "linear-gradient(180deg, rgba(21,16,14,0) 50%, rgba(21,16,14,0.7) 100%)",
+                      mixBlendMode: "multiply",
+                    }}
+                  />
+                </div>
+              ) : (
+                <div
+                  style={{
+                    height: 120,
+                    background:
+                      "linear-gradient(135deg, rgba(107,74,94,0.4), rgba(216,155,122,0.15))",
+                  }}
                 />
               )}
-              <div style={{ padding: 16, flex: 1, display: "flex", flexDirection: "column" }}>
-                <div style={{ fontWeight: 700 }}>{r.name}</div>
-                <div style={{ color: "var(--text-muted)", fontSize: 13, marginTop: 4, flex: 1 }}>
+              <div
+                style={{
+                  padding: 18,
+                  flex: 1,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 10,
+                }}
+              >
+                <div
+                  className="serif"
+                  style={{ fontSize: 19, fontWeight: 500, lineHeight: 1.25 }}
+                >
+                  {r.name}
+                </div>
+                <div style={{ color: "var(--text-muted)", fontSize: 13, flex: 1 }}>
                   {r.description}
                 </div>
                 <div
                   style={{
-                    marginTop: 12,
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "center",
+                    gap: 10,
                   }}
                 >
-                  <strong>{r.costPoints.toLocaleString()} pts</strong>
-                  <button
-                    disabled={disabled || busyId === r.id}
-                    onClick={() => redeem(r)}
-                    style={{
-                      background: disabled
-                        ? "var(--border)"
-                        : "linear-gradient(135deg, var(--accent), var(--accent-2))",
-                      color: "white",
-                      border: 0,
-                      borderRadius: 8,
-                      padding: "8px 14px",
-                      fontWeight: 700,
-                      cursor: disabled ? "not-allowed" : "pointer",
-                    }}
+                  <span
+                    className={locked || oos ? "chip chip-danger" : "chip"}
                   >
-                    {busyId === r.id ? "..." : "Redeem"}
+                    {locked
+                      ? r.tierRequired?.name.toLowerCase()
+                      : oos
+                        ? "rested"
+                        : `${r.costPoints.toLocaleString()} pts`}
+                  </span>
+                  <button
+                    className="btn"
+                    disabled={busyId === r.id}
+                    onClick={() => redeem(r)}
+                  >
+                    {busyId === r.id ? "…" : "redeem"}
                   </button>
                 </div>
-                {r.cashPriceCents && r.tierUnlocked && r.stock !== 0 && (
+                {r.cashPriceCents && !locked && !oos && (
                   <button
+                    className="btn btn-ghost"
                     disabled={busyId === r.id}
                     onClick={() => buyCash(r)}
-                    style={{
-                      marginTop: 8,
-                      background: "transparent",
-                      color: "var(--text)",
-                      border: "1px solid var(--border)",
-                      borderRadius: 8,
-                      padding: "8px 14px",
-                      fontWeight: 600,
-                      cursor: "pointer",
-                    }}
+                    style={{ width: "100%" }}
                   >
-                    Or buy for ${(r.cashPriceCents / 100).toFixed(2)}
+                    or take it for ${(r.cashPriceCents / 100).toFixed(2)}
                   </button>
-                )}
-                {reason && (
-                  <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 6 }}>
-                    {reason}
-                  </div>
                 )}
               </div>
             </div>
           );
         })}
       </div>
+      {toasts.map((t, i) => (
+        <div
+          key={t.id}
+          className={`toast ${t.kind === "success" ? "success" : t.kind === "error" ? "error" : ""}`}
+          style={{ bottom: 24 + i * 56 }}
+        >
+          {t.text}
+        </div>
+      ))}
     </>
   );
+}
+
+function friendlyError(code?: string): string {
+  switch (code) {
+    case "insufficient_points":
+      return "not quite enough yet — keep going.";
+    case "tier_locked":
+      return "this one opens at a higher tier.";
+    case "out_of_stock":
+      return "this one's gone for now. i'll bring more back.";
+    case "shipping_required":
+      return "need a shipping address for this one.";
+    case "reward_unavailable":
+      return "this reward is resting right now.";
+    default:
+      return "something didn't land. try again in a minute.";
+  }
 }

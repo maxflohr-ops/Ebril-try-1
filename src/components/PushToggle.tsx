@@ -34,9 +34,9 @@ export function PushToggle() {
       const reg = await navigator.serviceWorker.ready;
       const keyRes = await fetch("/api/push/subscribe");
       const { publicKey } = await keyRes.json();
-      if (!publicKey) throw new Error("Push not configured on server");
+      if (!publicKey) throw new Error("not set up on our side yet.");
       const permission = await Notification.requestPermission();
-      if (permission !== "granted") throw new Error("Permission denied");
+      if (permission !== "granted") throw new Error("okay, maybe later.");
       const sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(publicKey),
@@ -45,15 +45,12 @@ export function PushToggle() {
       const res = await fetch("/api/push/subscribe", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          endpoint: json.endpoint,
-          keys: json.keys,
-        }),
+        body: JSON.stringify({ endpoint: json.endpoint, keys: json.keys }),
       });
-      if (!res.ok) throw new Error("Failed to register subscription");
+      if (!res.ok) throw new Error("couldn't finish that. try again in a bit.");
       setSubscribed(true);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed");
+      setError(e instanceof Error ? e.message : "something didn't land.");
     } finally {
       setBusy(false);
     }
@@ -75,7 +72,7 @@ export function PushToggle() {
       }
       setSubscribed(false);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed");
+      setError(e instanceof Error ? e.message : "something didn't land.");
     } finally {
       setBusy(false);
     }
@@ -84,41 +81,35 @@ export function PushToggle() {
   if (!supported) return null;
 
   return (
-    <div
-      style={{
-        background: "var(--bg-card)",
-        border: "1px solid var(--border)",
-        borderRadius: 12,
-        padding: 16,
-        marginBottom: 16,
-      }}
-    >
-      <div style={{ fontSize: 12, color: "var(--text-muted)", textTransform: "uppercase" }}>
-        Notifications
-      </div>
-      <div style={{ marginTop: 6, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <div style={{ fontSize: 14 }}>
+    <div className="surface" style={{ padding: 20, marginBottom: 16 }}>
+      <div className="eyebrow">soft notifications</div>
+      <div
+        style={{
+          marginTop: 10,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          gap: 14,
+        }}
+      >
+        <div style={{ fontSize: 14, color: "var(--text-muted)" }}>
           {subscribed
-            ? "On — we'll ping you for expiring points and reward drops."
-            : "Off"}
+            ? "on. i'll whisper when something lands."
+            : "off. i'll stay quiet."}
         </div>
         <button
           onClick={subscribed ? unsubscribe : subscribe}
           disabled={busy}
-          style={{
-            background: subscribed ? "transparent" : "linear-gradient(135deg, var(--accent), var(--accent-2))",
-            color: subscribed ? "var(--text-muted)" : "white",
-            border: subscribed ? "1px solid var(--border)" : "0",
-            borderRadius: 8,
-            padding: "8px 14px",
-            fontWeight: 600,
-            cursor: busy ? "wait" : "pointer",
-          }}
+          className={subscribed ? "btn btn-ghost" : "btn"}
         >
-          {busy ? "..." : subscribed ? "Turn off" : "Turn on"}
+          {busy ? "…" : subscribed ? "turn off" : "turn on"}
         </button>
       </div>
-      {error && <div style={{ color: "#ff6b6b", fontSize: 13, marginTop: 6 }}>{error}</div>}
+      {error && (
+        <div style={{ color: "var(--danger)", fontSize: 13, marginTop: 10 }}>
+          {error}
+        </div>
+      )}
     </div>
   );
 }

@@ -13,28 +13,29 @@ export default async function AdminHome() {
   const circulating = (pointsIn._sum.delta ?? 0) + (pointsOut._sum.delta ?? 0);
 
   const cards = [
-    { label: "Users", value: userCount.toLocaleString() },
-    { label: "Active pledges", value: activePledges.toLocaleString() },
-    { label: "Points in circulation", value: circulating.toLocaleString() },
-    { label: "Pending redemptions", value: redemptionsPending.toLocaleString() },
+    { label: "users", value: userCount.toLocaleString() },
+    { label: "active pledges", value: activePledges.toLocaleString() },
+    { label: "points in circulation", value: circulating.toLocaleString() },
+    { label: "pending redemptions", value: redemptionsPending.toLocaleString() },
   ];
 
   return (
     <div>
-      <h2 style={{ marginTop: 0 }}>Dashboard</h2>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}>
+      <h1 className="admin-title" style={{ marginBottom: 20 }}>dashboard</h1>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14 }}>
         {cards.map((c) => (
-          <div
-            key={c.label}
-            style={{
-              background: "var(--bg-card)",
-              border: "1px solid var(--border)",
-              borderRadius: 12,
-              padding: 16,
-            }}
-          >
-            <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{c.label}</div>
-            <div style={{ fontSize: 28, fontWeight: 800, marginTop: 4 }}>{c.value}</div>
+          <div key={c.label} className="admin-surface" style={{ padding: 16 }}>
+            <div
+              style={{
+                fontSize: 11,
+                color: "var(--text-muted)",
+                letterSpacing: "0.12em",
+                textTransform: "uppercase",
+              }}
+            >
+              {c.label}
+            </div>
+            <div style={{ fontSize: 26, fontWeight: 600, marginTop: 6 }}>{c.value}</div>
           </div>
         ))}
       </div>

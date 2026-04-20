@@ -27,65 +27,56 @@ export function ProfileForm({ initialDob, email, displayName }: Props) {
     setSaving(false);
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
-      setError(body.error ?? "Failed to save");
+      setError(body.error ?? "didn't land. try again.");
       return;
     }
     setSaved(true);
   }
 
-  const input: React.CSSProperties = {
-    background: "var(--bg)",
-    color: "var(--text)",
-    border: "1px solid var(--border)",
-    borderRadius: 8,
-    padding: "8px 10px",
-    width: "100%",
-  };
-
   return (
     <form
       onSubmit={submit}
-      style={{
-        background: "var(--bg-card)",
-        border: "1px solid var(--border)",
-        borderRadius: 12,
-        padding: 16,
-      }}
+      className="surface"
+      style={{ padding: 20 }}
     >
-      <div style={{ display: "grid", gap: 12 }}>
+      <div className="eyebrow" style={{ marginBottom: 14 }}>account</div>
+      <div style={{ display: "grid", gap: 16 }}>
         <div>
-          <div style={{ fontSize: 11, color: "var(--text-muted)" }}>Display name</div>
-          <div style={{ fontSize: 14 }}>{displayName ?? "—"}</div>
+          <div className="eyebrow" style={{ fontSize: 10 }}>name</div>
+          <div style={{ fontSize: 15, marginTop: 4 }}>
+            {displayName?.toLowerCase() ?? "—"}
+          </div>
         </div>
         <div>
-          <div style={{ fontSize: 11, color: "var(--text-muted)" }}>Email</div>
-          <div style={{ fontSize: 14 }}>{email ?? "—"}</div>
+          <div className="eyebrow" style={{ fontSize: 10 }}>email</div>
+          <div style={{ fontSize: 15, marginTop: 4 }}>{email ?? "—"}</div>
         </div>
         <label>
-          <div style={{ fontSize: 11, color: "var(--text-muted)" }}>
-            Date of birth (for the birthday bonus)
+          <div className="eyebrow" style={{ fontSize: 10 }}>your birthday</div>
+          <input
+            type="date"
+            className="input"
+            value={dob}
+            onChange={(e) => setDob(e.target.value)}
+            style={{ marginTop: 6 }}
+          />
+          <div
+            style={{
+              color: "var(--text-muted)",
+              fontSize: 12,
+              marginTop: 6,
+            }}
+          >
+            a little something lands on the day. that&rsquo;s it.
           </div>
-          <input type="date" style={input} value={dob} onChange={(e) => setDob(e.target.value)} />
         </label>
       </div>
-      <div style={{ marginTop: 12, display: "flex", gap: 12, alignItems: "center" }}>
-        <button
-          type="submit"
-          disabled={saving}
-          style={{
-            background: "linear-gradient(135deg, var(--accent), var(--accent-2))",
-            color: "white",
-            border: 0,
-            borderRadius: 8,
-            padding: "10px 16px",
-            fontWeight: 700,
-            cursor: "pointer",
-          }}
-        >
-          {saving ? "Saving..." : "Save"}
+      <div style={{ marginTop: 20, display: "flex", gap: 12, alignItems: "center" }}>
+        <button type="submit" disabled={saving} className="btn">
+          {saving ? "…" : "save"}
         </button>
-        {saved && <div style={{ color: "var(--text-muted)" }}>Saved.</div>}
-        {error && <div style={{ color: "#ff6b6b" }}>{error}</div>}
+        {saved && <div style={{ color: "var(--success)", fontSize: 13 }}>saved.</div>}
+        {error && <div style={{ color: "var(--danger)", fontSize: 13 }}>{error}</div>}
       </div>
     </form>
   );

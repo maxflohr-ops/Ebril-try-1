@@ -1,28 +1,36 @@
+import { BalanceCounter } from "./BalanceCounter";
+
 export function BalanceCard({ balance }: { balance: number }) {
   return (
     <div
       style={{
-        background: "var(--bg-card)",
-        border: "1px solid var(--border)",
-        borderRadius: 16,
-        padding: 20,
+        position: "relative",
+        padding: "36px 28px 28px",
+        textAlign: "center",
       }}
     >
+      <div className="eyebrow">balance</div>
       <div
+        className="serif"
         style={{
-          fontSize: 12,
-          color: "var(--text-muted)",
-          textTransform: "uppercase",
-          letterSpacing: 1,
+          fontSize: 72,
+          fontWeight: 500,
+          color: "var(--accent)",
+          lineHeight: 1,
+          marginTop: 12,
+          letterSpacing: "-0.03em",
         }}
       >
-        Points balance
+        <BalanceCounter value={balance} />
       </div>
-      <div style={{ fontSize: 44, fontWeight: 800, marginTop: 6 }}>
-        {balance.toLocaleString()}
-      </div>
-      <div style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 4 }}>
-        Earn 10 pts per $1 pledged on Patreon.
+      <div
+        style={{
+          marginTop: 10,
+          color: "var(--text-muted)",
+          fontSize: 14,
+        }}
+      >
+        points
       </div>
     </div>
   );

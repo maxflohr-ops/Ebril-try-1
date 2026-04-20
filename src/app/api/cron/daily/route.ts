@@ -55,13 +55,13 @@ async function run(req: NextRequest) {
     if (u.email) {
       await sendEmail({
         to: u.email,
-        subject: "Happy birthday — bonus points dropped",
-        text: `Hey ${u.displayName ?? "you"}, ${BIRTHDAY_BONUS} bonus points just landed in your Ebril Rewards balance. Treat yourself.`,
+        subject: "happy birthday, love",
+        text: `happy birthday, ${u.displayName?.toLowerCase() ?? "you"}. a little something from me, because today is yours — ${BIRTHDAY_BONUS} points just landed in your balance. spend them on something that feels good.`,
       });
     }
     await sendPushToUser(u.id, {
-      title: "Happy birthday!",
-      body: `${BIRTHDAY_BONUS} bonus points just landed in your account.`,
+      title: "happy birthday, love",
+      body: `${BIRTHDAY_BONUS} points, because today is yours.`,
       url: "/rewards",
     });
   }
@@ -127,15 +127,15 @@ async function run(req: NextRequest) {
     if (user?.email) {
       await sendEmail({
         to: user.email,
-        subject: `Heads up — ${agg.points.toLocaleString()} points expiring soon`,
-        text: `Your ${agg.points.toLocaleString()} points expire on ${agg.soonest
+        subject: "your points are quietly about to expire",
+        text: `${agg.points.toLocaleString()} of your points drift away on ${agg.soonest
           .toISOString()
-          .slice(0, 10)}. Spend them at /rewards before the deadline.`,
+          .slice(0, 10)}. spend them on something that feels good — they're waiting at /rewards.`,
       });
     }
     await sendPushToUser(userId, {
-      title: "Points expiring soon",
-      body: `${agg.points.toLocaleString()} pts expire ${agg.soonest.toISOString().slice(0, 10)}`,
+      title: "your points are quietly about to expire",
+      body: `${agg.points.toLocaleString()} drift away on ${agg.soonest.toISOString().slice(0, 10)}.`,
       url: "/rewards",
     });
     await prisma.auditLog.create({

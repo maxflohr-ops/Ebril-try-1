@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { getSession } from "@/lib/session";
@@ -27,12 +28,30 @@ export default async function RewardsPage() {
   const userSort = user?.currentTier?.sortOrder ?? 0;
 
   return (
-    <main style={{ maxWidth: 960, margin: "0 auto", padding: 24 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-        <h1 style={{ margin: 0 }}>Rewards</h1>
-        <div style={{ color: "var(--text-muted)" }}>
-          Balance: <strong style={{ color: "var(--text)" }}>{balance.toLocaleString()}</strong> pts
+    <main style={{ maxWidth: 960, margin: "0 auto", padding: "32px 20px 64px" }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-end",
+          gap: 16,
+          marginBottom: 24,
+        }}
+      >
+        <div>
+          <div className="eyebrow">rewards</div>
+          <h2 style={{ marginTop: 6 }}>things i made for you</h2>
         </div>
+        <Link
+          href="/"
+          className="nav-chip"
+          style={{ whiteSpace: "nowrap" }}
+        >
+          balance:{" "}
+          <strong style={{ color: "var(--text)", marginLeft: 6 }}>
+            {balance.toLocaleString()}
+          </strong>
+        </Link>
       </div>
       <RewardGrid
         rewards={rewards.map((r) => ({
@@ -47,6 +66,7 @@ export default async function RewardsPage() {
           tierRequired: r.tierRequired,
           affordable: balance >= r.costPoints,
           tierUnlocked: !r.tierRequired || userSort >= r.tierRequired.sortOrder,
+          shortfall: Math.max(0, r.costPoints - balance),
         }))}
       />
     </main>

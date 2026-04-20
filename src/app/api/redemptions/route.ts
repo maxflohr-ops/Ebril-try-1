@@ -114,11 +114,11 @@ export async function POST(req: NextRequest) {
     if (user?.email) {
       await sendEmail({
         to: user.email,
-        subject: `Redemption received: ${result.reward.name}`,
-        text: `Hey ${user.displayName ?? "there"} — we got your redemption for ${result.reward.name} (${result.reward.costPoints} pts). ${
+        subject: `kept safe: ${result.reward.name.toLowerCase()}`,
+        text: `${user.displayName?.toLowerCase() ?? "love"} — i have your ${result.reward.name.toLowerCase()} (${result.reward.costPoints} points). ${
           result.redemption.status === "approved"
-            ? "It's already unlocked in your account."
-            : "You'll get another email once Ebril ships it."
+            ? "it's already unlocked for you."
+            : "i'll write again the moment it leaves my hands."
         }`,
       });
     }
