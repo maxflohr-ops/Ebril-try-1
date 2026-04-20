@@ -415,3 +415,25 @@ model TourCheckin {
   @@unique([userId, tourDateId])
   @@index([tourDateId])
 }
+
+model Song {
+  id              String   @id @default(uuid())
+  slug            String   @unique
+  title           String
+  album           String?
+  lyrics          String
+  noteFromEbril   String?
+  artworkUrl      String?
+  durationSec     Int?
+  releaseDate     DateTime?
+  spotifyUrl      String?
+  appleMusicUrl   String?
+  youtubeUrl      String?
+  bandcampUrl     String?
+  sortOrder       Int      @default(0)
+  active          Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([active, sortOrder])
+}

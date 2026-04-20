@@ -172,7 +172,37 @@ async function main() {
     });
   }
 
-  console.log("Seeded tiers, point packs, external links, collectibles.");
+  const songs = [
+    {
+      slug: "stranger-in-you",
+      title: "Stranger In You",
+      album: "In Copula",
+      lyrics:
+        "[add lyrics here in the admin — blank line between verses.]\n\n[verse one placeholder]\n\n[verse two placeholder]",
+      noteFromEbril:
+        "the first track. it carried so much of the record before anyone had heard it. thank you for finding me through it.",
+      spotifyUrl: "https://ebril.lnk.to/strangerinyou",
+      releaseDate: new Date("2025-05-01T00:00:00Z"),
+      sortOrder: 1,
+    },
+    {
+      slug: "anticipate-heartbreak",
+      title: "Anticipate Heartbreak",
+      album: "In Copula",
+      lyrics: "[add lyrics here in the admin.]",
+      spotifyUrl: "https://ebril.lnk.to/incopula",
+      sortOrder: 2,
+    },
+  ];
+  for (const s of songs) {
+    await prisma.song.upsert({
+      where: { slug: s.slug },
+      update: s,
+      create: s,
+    });
+  }
+
+  console.log("Seeded tiers, point packs, external links, collectibles, songs.");
 }
 
 main()

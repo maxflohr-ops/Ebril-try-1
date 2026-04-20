@@ -110,6 +110,7 @@ export default async function Home() {
           justifyContent: "center",
         }}
       >
+        <Link href="/songs" className="nav-chip">songs</Link>
         <Link href="/diary" className="nav-chip">dusk diary</Link>
         <Link href="/notes" className="nav-chip">voice notes</Link>
         <Link href="/shows" className="nav-chip">shows</Link>
