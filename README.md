@@ -19,6 +19,26 @@ Patreon-connected loyalty app for Ebril. See [`SPEC.md`](./SPEC.md) for the full
 - [x] **M6** — Stripe path for non-Patreon fans (point packs + cash rewards)
 - [x] **M7** — Dusk diary + listening rituals (music-fan loop)
 - [x] **M8** — Spotify / YouTube / Shopify (click-out links + product grid)
+- [x] **M9** — Capacitor wrap for iOS + Android, store listing pack
+
+## Publishing to the App Store + Google Play
+
+See `docs/publishing.md` for the full runbook. Short version:
+
+```bash
+npm install
+npx cap add ios
+npx cap add android
+npm run build
+npm run mobile:sync
+npm run mobile:open:ios       # or :android
+```
+
+Supporting docs:
+
+- `docs/store-listing.md` — names, descriptions, keywords in her voice.
+- `docs/icons-and-screenshots.md` — asset spec + screenshot sequence.
+- `docs/privacy-policy.md` and `docs/terms.md` — starter legal, needs counsel.
 
 ## Stripe setup
 
