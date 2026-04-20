@@ -137,9 +137,13 @@ export async function fetchCurrentMembership(
 export function verifyWebhookSignature(rawBody: string, signature: string | null): boolean {
   const secret = process.env.PATREON_WEBHOOK_SECRET;
   if (!secret || !signature) return false;
-  const expected = crypto.createHmac("md5", secret).update(rawBody).digest("hex");
+  // Patreon sends a hex-encoded MD5 HMAC; reject anything that isn't a
+  // 32-char hex string before parsing so malformed inputs don't reach
+  // timingSafeEqual with surprising buffer content.
+  if (!/^[a-f0-9]{32}$/i.test(signature)) return false;
+  const expected = crypto.createHmac("md5", secret).update(rawBody).digest();
   try {
-    return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(signature));
+    return crypto.timingSafeEqual(expected, Buffer.from(signature, "hex"));
   } catch {
     return false;
   }

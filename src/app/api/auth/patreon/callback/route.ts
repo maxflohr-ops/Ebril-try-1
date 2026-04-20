@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import {
   exchangeCode,
@@ -18,7 +19,21 @@ export async function GET(req: NextRequest) {
   const code = url.searchParams.get("code");
   const state = url.searchParams.get("state");
 
-  if (!code || !state || !session.oauthState || state !== session.oauthState) {
+  // Timing-safe state comparison; clear the pending state on *every* exit
+  // (success, mismatch, malformed) so a failed callback never leaves a stale
+  // CSRF token lying around to be replayed.
+  const stored = session.oauthState;
+  const sameLength =
+    !!code && !!state && !!stored && state.length === stored.length;
+  const stateOk =
+    sameLength &&
+    crypto.timingSafeEqual(
+      Buffer.from(state as string),
+      Buffer.from(stored as string)
+    );
+  if (!stateOk) {
+    session.oauthState = undefined;
+    await session.save();
     return NextResponse.json({ error: "invalid_state" }, { status: 400 });
   }
   session.oauthState = undefined;

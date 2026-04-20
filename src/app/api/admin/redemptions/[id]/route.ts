@@ -41,19 +41,21 @@ export async function PATCH(
     if (!r) throw new Error("not_found");
 
     if (status === "cancelled" && r.status !== "cancelled") {
-      const existingReversal = await tx.pointTransaction.findFirst({
-        where: { userId: r.userId, refId: r.id, reason: "manual_adjust", delta: { gt: 0 } },
-      });
-      if (!existingReversal) {
+      // Distinct refId for the reversal so the @@unique([userId, refId])
+      // constraint doesn't collide with the original debit (refId = r.id).
+      // Swallowing the unique conflict makes repeat cancels idempotent.
+      try {
         await tx.pointTransaction.create({
           data: {
             userId: r.userId,
             delta: r.costPoints,
             reason: "manual_adjust",
-            refId: r.id,
+            refId: `redemption-reversal:${r.id}`,
             expiresAt: null,
           },
         });
+      } catch {
+        // already reversed, safe to ignore.
       }
       if (r.reward.stock !== null) {
         await tx.reward.update({
@@ -92,11 +94,19 @@ export async function PATCH(
       if (!pi) {
         refundWarning = "stripe session had no payment_intent to refund";
       } else {
-        const refund = await stripe().refunds.create({
-          payment_intent: pi,
-          reason: "requested_by_customer",
-          metadata: { redemptionId: redemption.id },
-        });
+        const refund = await stripe().refunds.create(
+          {
+            payment_intent: pi,
+            reason: "requested_by_customer",
+            metadata: { redemptionId: redemption.id },
+          },
+          {
+            // Per-redemption idempotency — re-running the cancel after a
+            // transient failure will return the original refund instead of
+            // duplicating.
+            idempotencyKey: `refund:${redemption.id}`,
+          }
+        );
         await prisma.redemption.update({
           where: { id: redemption.id },
           data: { stripeRefundId: refund.id },

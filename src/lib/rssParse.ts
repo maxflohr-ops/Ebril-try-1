@@ -48,7 +48,14 @@ function pickImage(block: string): string | null {
   return null;
 }
 
+import { guardOutboundUrl } from "./netGuard";
+
 export async function fetchFeed(url: string): Promise<FeedItem[]> {
+  // SSRF guard: admin feed URLs go through an outbound fetch; lock out
+  // private/loopback/metadata IPs.
+  const guard = await guardOutboundUrl(url);
+  if (!guard.ok) return [];
+
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 10_000);
   try {

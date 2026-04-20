@@ -71,7 +71,7 @@ export async function performCheckin(
     await credit({
       userId,
       amountCents: 0,
-      reason: "manual_adjust",
+      reason: "show_checkin",
       refId: `show:${tour.id}:${userId}`,
       flatBonus: tour.pointsReward,
       expiresAt: defaultExpiry(),

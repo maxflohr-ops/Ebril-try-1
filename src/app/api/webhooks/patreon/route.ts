@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { verifyWebhookSignature } from "@/lib/patreon";
 import { prisma } from "@/lib/db";
@@ -45,8 +46,13 @@ export async function POST(req: NextRequest) {
   }
 
   const payload = JSON.parse(raw);
-  const externalId = `${trigger ?? "unknown"}:${payload.data?.id ?? crypto.randomUUID()}:${
-    payload.data?.attributes?.last_charge_date ?? Date.now()
+  // Dedupe key prefers Patreon's own stable fields (data.id + last_charge_date
+  // when present). If either is missing, fall back to a hash of the signed raw
+  // body so a retry of the same delivery still dedupes — never to a random
+  // uuid, which would silently let duplicate events through on retry.
+  const bodyHash = crypto.createHash("sha256").update(raw).digest("hex").slice(0, 24);
+  const externalId = `${trigger ?? "unknown"}:${payload.data?.id ?? bodyHash}:${
+    payload.data?.attributes?.last_charge_date ?? bodyHash
   }`;
 
   try {

@@ -100,6 +100,29 @@ export async function POST(req: NextRequest) {
     const { redemption } = await prisma.$transaction(async (tx) => {
       const reward = await tx.reward.findUnique({ where: { id: record.targetId! } });
       if (!reward) throw new Error("reward_missing");
+      // Re-validate inside the transaction — the reward may have been
+      // deactivated, gated to a higher tier, or sold out between checkout
+      // creation and webhook delivery. We don't gift it for free if any of
+      // those changed; the admin can refund from Stripe and reach out.
+      if (!reward.active) throw new Error("reward_inactive");
+      if (reward.stock !== null && reward.stock <= 0) throw new Error("reward_oos");
+      if (reward.tierRequiredId) {
+        const user = await tx.user.findUnique({
+          where: { id: record.userId },
+          select: { currentTier: { select: { sortOrder: true } } },
+        });
+        const required = await tx.tier.findUnique({
+          where: { id: reward.tierRequiredId },
+          select: { sortOrder: true },
+        });
+        if (
+          !required ||
+          !user?.currentTier ||
+          user.currentTier.sortOrder < required.sortOrder
+        ) {
+          throw new Error("reward_tier_locked");
+        }
+      }
       const isDigital = DIGITAL.has(reward.type);
       const created = await tx.redemption.create({
         data: {

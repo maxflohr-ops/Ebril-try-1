@@ -5,6 +5,7 @@ import { getSession } from "@/lib/session";
 import { consecutiveEntryDays, createDiaryEntry, DIARY_MOODS } from "@/lib/diary";
 import { track } from "@/lib/analytics";
 import { COLLECTIBLE_KEYS, grantCollectible } from "@/lib/collectibles";
+import { rateLimit } from "@/lib/ratelimit";
 
 const CreateSchema = z.object({
   text: z.string().min(1).max(4000),
@@ -28,6 +29,17 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   const session = await getSession();
   if (!session.userId) return NextResponse.json({ error: "unauthenticated" }, { status: 401 });
+
+  // Writing enables point credit; cap at 20 diary writes per 10min to curb
+  // farming. The per-day dedupe already caps point-earning to 1/day but a
+  // fan can still pile on uncredited entries and flood the DB.
+  const limit = rateLimit(`diary:${session.userId}`, 20, 10 * 60 * 1000);
+  if (!limit.ok) {
+    return NextResponse.json(
+      { error: "rate_limited", retryAfterMs: limit.retryAfterMs },
+      { status: 429, headers: { "retry-after": Math.ceil(limit.retryAfterMs / 1000).toString() } }
+    );
+  }
   const parsed = CreateSchema.safeParse(await req.json());
   if (!parsed.success) {
     return NextResponse.json({ error: "invalid", issues: parsed.error.issues }, { status: 400 });

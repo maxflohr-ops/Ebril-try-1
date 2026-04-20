@@ -53,6 +53,15 @@ export async function reconcilePledgeForUser(userId: string): Promise<ReconcileR
   if (!accessToken) return { userId, status: "skipped", reason: "no_token" };
 
   try {
+    // Capture the pre-reconcile tier id BEFORE any downstream mutations.
+    // recalcUserTier runs at the end and the comparison has to be against
+    // the tier we had going in, not against an already-updated row.
+    const beforeUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { currentTierId: true },
+    });
+    const previousTierId = beforeUser?.currentTierId ?? null;
+
     const [identity, membership] = await Promise.all([
       fetchIdentity(accessToken),
       fetchCurrentMembership(accessToken).catch(() => null),
@@ -138,12 +147,6 @@ export async function reconcilePledgeForUser(userId: string): Promise<ReconcileR
       }
     }
 
-    const previousTierId = (
-      await prisma.user.findUnique({
-        where: { id: user.id },
-        select: { currentTierId: true },
-      })
-    )?.currentTierId;
     const newTier = await recalcUserTier(user.id);
     const tierChanged = (newTier?.id ?? null) !== (previousTierId ?? null);
 

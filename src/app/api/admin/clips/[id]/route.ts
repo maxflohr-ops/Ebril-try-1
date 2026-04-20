@@ -56,13 +56,19 @@ export async function PATCH(
   if (!parsed.success) return NextResponse.json({ error: "invalid" }, { status: 400 });
 
   if (parsed.data.viewCount !== undefined) {
-    await prisma.clip.update({
+    const updated = await prisma.clip.update({
       where: { id: params.id },
       data: {
         viewCount: parsed.data.viewCount,
         viewCountUpdatedAt: new Date(),
       },
     });
+    await logAudit(admin.userId, "clip.view_count", params.id, {
+      viewCount: parsed.data.viewCount,
+    });
+    if (!parsed.data.status) {
+      return NextResponse.json({ clip: updated });
+    }
   }
 
   if (!parsed.data.status) {

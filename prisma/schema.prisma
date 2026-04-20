@@ -66,6 +66,7 @@ model PointTransaction {
   expiresAt DateTime?
   createdAt DateTime          @default(now())
 
+  @@unique([userId, refId])
   @@index([userId])
   @@index([userId, expiresAt])
 }
@@ -84,6 +85,7 @@ enum TransactionReason {
   diary_entry
   ritual_claim
   clip_approved
+  show_checkin
 }
 
 model Tier {

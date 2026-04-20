@@ -1,16 +1,21 @@
 import { prisma } from "@/lib/db";
 import { QueueRow } from "./QueueRow";
+import { RedemptionStatus } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
+
+const VALID: ReadonlySet<string> = new Set(Object.values(RedemptionStatus));
 
 export default async function AdminRedemptions({
   searchParams,
 }: {
   searchParams: { status?: string };
 }) {
-  const status = searchParams.status ?? "pending";
+  const raw = searchParams.status;
+  const status: RedemptionStatus =
+    raw && VALID.has(raw) ? (raw as RedemptionStatus) : RedemptionStatus.pending;
   const redemptions = await prisma.redemption.findMany({
-    where: { status: status as never },
+    where: { status },
     orderBy: { createdAt: "asc" },
     include: {
       reward: true,

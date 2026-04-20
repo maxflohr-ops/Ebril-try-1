@@ -4,6 +4,7 @@ import { getSession } from "@/lib/session";
 import { claimRitual } from "@/lib/rituals";
 import { prisma } from "@/lib/db";
 import { COLLECTIBLE_KEYS, grantCollectible } from "@/lib/collectibles";
+import { rateLimit } from "@/lib/ratelimit";
 
 const Schema = z.object({
   reflection: z.string().max(1000).optional().nullable(),
@@ -15,6 +16,15 @@ export async function POST(
 ) {
   const session = await getSession();
   if (!session.userId) return NextResponse.json({ error: "unauthenticated" }, { status: 401 });
+
+  const limit = rateLimit(`ritual:${session.userId}`, 20, 60_000);
+  if (!limit.ok) {
+    return NextResponse.json(
+      { error: "rate_limited" },
+      { status: 429, headers: { "retry-after": Math.ceil(limit.retryAfterMs / 1000).toString() } }
+    );
+  }
+
   const parsed = Schema.safeParse(await req.json().catch(() => ({})));
   if (!parsed.success) return NextResponse.json({ error: "invalid" }, { status: 400 });
 

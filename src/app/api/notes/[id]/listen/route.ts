@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { getSession } from "@/lib/session";
+import { rateLimit } from "@/lib/ratelimit";
 
 const Schema = z.object({
   secondsListened: z.number().int().min(0).max(60 * 60 * 6),
@@ -14,6 +15,18 @@ export async function POST(
 ) {
   const session = await getSession();
   if (!session.userId) return NextResponse.json({ error: "unauthenticated" }, { status: 401 });
+
+  // AudioPlayer throttles to one report per 15s of playtime, so a healthy
+  // fan lands far under 40/min. This is just a cheap floor against tight
+  // loops from a modified client.
+  const limit = rateLimit(`listen:${session.userId}`, 40, 60_000);
+  if (!limit.ok) {
+    return NextResponse.json(
+      { error: "rate_limited" },
+      { status: 429, headers: { "retry-after": Math.ceil(limit.retryAfterMs / 1000).toString() } }
+    );
+  }
+
   const parsed = Schema.safeParse(await req.json());
   if (!parsed.success) return NextResponse.json({ error: "invalid" }, { status: 400 });
 
