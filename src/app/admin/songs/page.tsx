@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
 import { SongForm } from "./SongForm";
 import { ArchiveButton } from "./ArchiveButton";
+import { DropNotifyButton } from "./DropNotifyButton";
 
 export const dynamic = "force-dynamic";
 
@@ -52,7 +53,12 @@ export default async function AdminSongs() {
                 {s.releaseDate ? ` · ${s.releaseDate.toISOString().slice(0, 10)}` : ""}
               </div>
             </div>
-            {s.active && <ArchiveButton id={s.id} />}
+            {s.active && (
+              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                <DropNotifyButton id={s.id} title={s.title} />
+                <ArchiveButton id={s.id} />
+              </div>
+            )}
           </div>
         ))}
       </div>

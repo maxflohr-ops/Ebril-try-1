@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { InspirationManager } from "./InspirationManager";
+import { FeedConnector } from "./FeedConnector";
 
 export const dynamic = "force-dynamic";
 
@@ -44,6 +45,21 @@ export default async function EditDirection({
       >
         {direction.era.name.toLowerCase()} · {direction.inspiration.length} pins
       </div>
+
+      <section style={{ marginBottom: 28 }}>
+        <h3 style={{ marginBottom: 8 }}>pinterest feed</h3>
+        <p style={{ color: "var(--text-muted)", fontSize: 13, marginBottom: 16 }}>
+          paste a pinterest board rss url (the board url with <code>.rss</code> on the
+          end — e.g. <code>pinterest.com/ebril/dusk-window.rss</code>) or any other feed
+          that carries moodboard imagery. we poll it daily and newly pinned images
+          appear in the gallery below automatically.
+        </p>
+        <FeedConnector
+          briefId={direction.id}
+          initialFeedUrl={direction.inspirationFeedUrl}
+          lastSyncedAt={direction.inspirationFeedSyncedAt?.toISOString() ?? null}
+        />
+      </section>
 
       <section style={{ marginBottom: 32 }}>
         <h3 style={{ marginBottom: 8 }}>moodboard</h3>

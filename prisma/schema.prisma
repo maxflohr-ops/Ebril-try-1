@@ -478,6 +478,8 @@ model ClippingBrief {
   hashtagHint             String?
   tiktokSoundUrl          String?
   captionTemplate         String?
+  inspirationFeedUrl      String?
+  inspirationFeedSyncedAt DateTime?
   pointsApproved          Int      @default(100)
   pointsFeatured          Int      @default(500)
   pointsViral             Int      @default(2500)
@@ -505,9 +507,11 @@ model InspirationImage {
   caption     String?
   attribution String?
   source      String   @default("pinterest")
+  externalId  String?
   sortOrder   Int      @default(0)
   createdAt   DateTime @default(now())
 
+  @@unique([briefId, externalId])
   @@index([briefId, sortOrder])
 }
 

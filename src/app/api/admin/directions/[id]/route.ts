@@ -13,6 +13,7 @@ const PatchSchema = z.object({
   hashtagHint: z.string().max(80).nullable().optional(),
   tiktokSoundUrl: z.string().url().nullable().optional(),
   captionTemplate: z.string().max(1000).nullable().optional(),
+  inspirationFeedUrl: z.string().url().nullable().optional(),
   pointsApproved: z.number().int().min(0).optional(),
   pointsFeatured: z.number().int().min(0).optional(),
   pointsViral: z.number().int().min(0).optional(),
