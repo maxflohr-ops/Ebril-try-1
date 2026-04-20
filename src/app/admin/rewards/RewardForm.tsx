@@ -10,6 +10,7 @@ export function RewardForm({ tiers }: { tiers: { id: string; name: string }[] })
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [costPoints, setCostPoints] = useState("1000");
+  const [cashPriceCents, setCashPriceCents] = useState("");
   const [type, setType] = useState<(typeof TYPES)[number]>("merch");
   const [imageUrl, setImageUrl] = useState("");
   const [stock, setStock] = useState("");
@@ -28,6 +29,7 @@ export function RewardForm({ tiers }: { tiers: { id: string; name: string }[] })
         name,
         description,
         costPoints: Number(costPoints),
+        cashPriceCents: cashPriceCents === "" ? null : Number(cashPriceCents),
         type,
         imageUrl: imageUrl || null,
         stock: stock === "" ? null : Number(stock),
@@ -45,6 +47,7 @@ export function RewardForm({ tiers }: { tiers: { id: string; name: string }[] })
     setImageUrl("");
     setStock("");
     setTierRequiredId("");
+    setCashPriceCents("");
     router.refresh();
   }
 
@@ -101,6 +104,16 @@ export function RewardForm({ tiers }: { tiers: { id: string; name: string }[] })
           style={input}
           value={costPoints}
           onChange={(e) => setCostPoints(e.target.value)}
+        />
+      </label>
+      <label>
+        <div style={{ fontSize: 11, color: "var(--text-muted)" }}>Cash price (cents, blank = points only)</div>
+        <input
+          type="number"
+          min="50"
+          style={input}
+          value={cashPriceCents}
+          onChange={(e) => setCashPriceCents(e.target.value)}
         />
       </label>
       <label>

@@ -80,6 +80,7 @@ enum TransactionReason {
   redemption
   expiry
   signup_bonus
+  stripe_top_up
 }
 
 model Tier {
@@ -108,19 +109,49 @@ model Campaign {
 }
 
 model Reward {
-  id           String     @id @default(uuid())
-  name         String
-  description  String
-  imageUrl     String?
-  costPoints   Int
-  stock        Int?
+  id             String     @id @default(uuid())
+  name           String
+  description    String
+  imageUrl       String?
+  costPoints     Int
+  cashPriceCents Int?
+  stock          Int?
   tierRequiredId String?
-  tierRequired Tier?      @relation(fields: [tierRequiredId], references: [id])
-  type         RewardType
-  active       Boolean    @default(true)
-  createdAt    DateTime   @default(now())
+  tierRequired   Tier?      @relation(fields: [tierRequiredId], references: [id])
+  type           RewardType
+  active         Boolean    @default(true)
+  createdAt      DateTime   @default(now())
 
   redemptions Redemption[]
+}
+
+model PointPack {
+  id          String   @id @default(uuid())
+  name        String
+  points      Int
+  priceCents  Int
+  currency    String   @default("USD")
+  active      Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  @@index([active, sortOrder])
+}
+
+model StripeCheckout {
+  id              String   @id @default(uuid())
+  userId          String
+  sessionId       String   @unique
+  kind            String
+  targetId        String?
+  amountCents     Int
+  pointsDelta     Int?
+  status          String   @default("pending")
+  fulfilledAt     DateTime?
+  createdAt       DateTime @default(now())
+
+  @@index([userId])
+  @@index([status])
 }
 
 enum RewardType {

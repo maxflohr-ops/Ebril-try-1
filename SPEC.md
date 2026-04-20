@@ -223,6 +223,7 @@ Digital rewards (content unlock, discount code) auto-fulfill on redemption — n
 - **M3 — Rewards + redemption (week 3)** ✅: catalog, redemption flow, admin queue, email notifications.
 - **M4 — Engagement (week 4)** ✅: streaks, birthday, referral, expiry warnings, audit log.
 - **M5 — Polish** ✅: PWA manifest, push notifications, analytics events, load test the redemption path.
+- **M6 — Stripe path** ✅: point packs (Stripe checkout → ledger credit on webhook) and optional cash price per reward so non-Patreon fans can participate.
 
 ---
 

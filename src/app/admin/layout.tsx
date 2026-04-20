@@ -23,6 +23,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
           <Link href="/admin">Dashboard</Link>
           <Link href="/admin/campaigns">Campaigns</Link>
           <Link href="/admin/rewards">Rewards</Link>
+          <Link href="/admin/point-packs">Point packs</Link>
           <Link href="/admin/redemptions">Redemptions</Link>
           <Link href="/admin/audit">Audit log</Link>
         </nav>

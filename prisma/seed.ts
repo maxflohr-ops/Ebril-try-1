@@ -15,7 +15,21 @@ async function main() {
       create: t,
     });
   }
-  console.log("Seeded tiers.");
+
+  const packs = [
+    { name: "Starter", points: 1000, priceCents: 1000, sortOrder: 1 },
+    { name: "Boost", points: 5500, priceCents: 5000, sortOrder: 2 },
+    { name: "Mega", points: 12000, priceCents: 10000, sortOrder: 3 },
+  ];
+  for (const p of packs) {
+    const existing = await prisma.pointPack.findFirst({ where: { name: p.name } });
+    if (existing) {
+      await prisma.pointPack.update({ where: { id: existing.id }, data: p });
+    } else {
+      await prisma.pointPack.create({ data: p });
+    }
+  }
+  console.log("Seeded tiers and point packs.");
 }
 
 main()

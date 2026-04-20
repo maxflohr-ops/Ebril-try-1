@@ -41,6 +41,7 @@ export default async function RewardsPage() {
           description: r.description,
           imageUrl: r.imageUrl,
           costPoints: r.costPoints,
+          cashPriceCents: r.cashPriceCents,
           stock: r.stock,
           type: r.type,
           tierRequired: r.tierRequired,

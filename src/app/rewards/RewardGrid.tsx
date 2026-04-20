@@ -9,6 +9,7 @@ interface Reward {
   description: string;
   imageUrl: string | null;
   costPoints: number;
+  cashPriceCents: number | null;
   stock: number | null;
   type: string;
   tierRequired: { name: string; sortOrder: number } | null;
@@ -23,24 +24,27 @@ export function RewardGrid({ rewards }: { rewards: Reward[] }) {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
+  function collectShipping(reward: Reward): Record<string, string> | null | undefined {
+    if (DIGITAL.has(reward.type)) return undefined;
+    const name = prompt("Shipping name");
+    if (!name) return null;
+    const line1 = prompt("Address line 1");
+    if (!line1) return null;
+    const city = prompt("City");
+    if (!city) return null;
+    const region = prompt("State/Region");
+    if (!region) return null;
+    const postalCode = prompt("Postal code");
+    if (!postalCode) return null;
+    const country = prompt("Country (2-letter code, e.g. US)");
+    if (!country || country.length !== 2) return null;
+    return { name, line1, city, region, postalCode, country: country.toUpperCase() };
+  }
+
   async function redeem(reward: Reward) {
     setError(null);
-    let shippingAddress: Record<string, string> | undefined;
-    if (!DIGITAL.has(reward.type)) {
-      const name = prompt("Shipping name");
-      if (!name) return;
-      const line1 = prompt("Address line 1");
-      if (!line1) return;
-      const city = prompt("City");
-      if (!city) return;
-      const region = prompt("State/Region");
-      if (!region) return;
-      const postalCode = prompt("Postal code");
-      if (!postalCode) return;
-      const country = prompt("Country (2-letter code, e.g. US)");
-      if (!country || country.length !== 2) return;
-      shippingAddress = { name, line1, city, region, postalCode, country: country.toUpperCase() };
-    }
+    const shippingAddress = collectShipping(reward);
+    if (shippingAddress === null) return;
 
     setBusyId(reward.id);
     const res = await fetch("/api/redemptions", {
@@ -56,6 +60,27 @@ export function RewardGrid({ rewards }: { rewards: Reward[] }) {
     }
     router.refresh();
     router.push("/redemptions");
+  }
+
+  async function buyCash(reward: Reward) {
+    setError(null);
+    const shippingAddress = collectShipping(reward);
+    if (shippingAddress === null) return;
+
+    setBusyId(reward.id);
+    const res = await fetch("/api/checkout/reward", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ rewardId: reward.id, shippingAddress }),
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      setError(body.error ?? "Failed");
+      setBusyId(null);
+      return;
+    }
+    const { url } = await res.json();
+    window.location.href = url;
   }
 
   return (
@@ -131,6 +156,24 @@ export function RewardGrid({ rewards }: { rewards: Reward[] }) {
                     {busyId === r.id ? "..." : "Redeem"}
                   </button>
                 </div>
+                {r.cashPriceCents && r.tierUnlocked && r.stock !== 0 && (
+                  <button
+                    disabled={busyId === r.id}
+                    onClick={() => buyCash(r)}
+                    style={{
+                      marginTop: 8,
+                      background: "transparent",
+                      color: "var(--text)",
+                      border: "1px solid var(--border)",
+                      borderRadius: 8,
+                      padding: "8px 14px",
+                      fontWeight: 600,
+                      cursor: "pointer",
+                    }}
+                  >
+                    Or buy for ${(r.cashPriceCents / 100).toFixed(2)}
+                  </button>
+                )}
                 {reason && (
                   <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 6 }}>
                     {reason}

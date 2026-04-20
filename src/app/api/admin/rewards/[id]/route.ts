@@ -9,6 +9,7 @@ const UpdateSchema = z.object({
   description: z.string().max(2000).optional(),
   imageUrl: z.string().url().nullish(),
   costPoints: z.number().int().min(1).optional(),
+  cashPriceCents: z.number().int().min(50).nullish(),
   stock: z.number().int().min(0).nullish(),
   tierRequiredId: z.string().uuid().nullish(),
   active: z.boolean().optional(),

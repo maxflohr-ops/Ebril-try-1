@@ -16,6 +16,16 @@ Patreon-connected loyalty app for Ebril. See [`SPEC.md`](./SPEC.md) for the full
 - [x] **M3** — Rewards catalog, redemption flow, admin queue, emails
 - [x] **M4** — Streaks, birthday, referral, expiry warnings, audit log
 - [x] **M5** — PWA, push notifications, analytics, load test
+- [x] **M6** — Stripe path for non-Patreon fans (point packs + cash rewards)
+
+## Stripe setup
+
+Fans without a Patreon subscription can still participate via Stripe:
+
+- **Point packs** — admin CRUD at `/admin/point-packs`. Fans see packs on `/points/buy`; checkout redirects to Stripe and the webhook credits the ledger on `checkout.session.completed`.
+- **Cash-buy rewards** — admins optionally set `cashPriceCents` on a reward; fans get an "Or buy for $X" button that runs Stripe checkout and creates a redemption (at `costPoints = 0`, notes = `Paid via Stripe <session>`).
+
+After creating keys in the Stripe dashboard, point the webhook at `{APP_BASE_URL}/api/webhooks/stripe` and enable the `checkout.session.completed` event. Put the signing secret into `STRIPE_WEBHOOK_SECRET`.
 
 ## Load testing
 
