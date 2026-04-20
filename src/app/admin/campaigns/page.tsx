@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import { CampaignForm } from "./CampaignForm";
-import { DeleteButton } from "./DeleteButton";
+import { ConfirmActionButton } from "@/components/ConfirmActionButton";
 
 export const dynamic = "force-dynamic";
 
@@ -55,7 +55,11 @@ export default async function CampaignsAdmin() {
                   {c.endsAt.toISOString().slice(0, 10)}
                 </div>
               </div>
-              <DeleteButton id={c.id} />
+              <ConfirmActionButton
+                endpoint={`/api/admin/campaigns/${c.id}`}
+                confirm="delete this campaign?"
+                label="delete"
+              />
             </div>
           );
         })}

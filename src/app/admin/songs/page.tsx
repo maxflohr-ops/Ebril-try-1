@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db";
 import { SongForm } from "./SongForm";
-import { ArchiveButton } from "./ArchiveButton";
 import { DropNotifyButton } from "./DropNotifyButton";
+import { ConfirmActionButton } from "@/components/ConfirmActionButton";
 
 export const dynamic = "force-dynamic";
 
@@ -56,7 +56,11 @@ export default async function AdminSongs() {
             {s.active && (
               <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
                 <DropNotifyButton id={s.id} title={s.title} />
-                <ArchiveButton id={s.id} />
+                <ConfirmActionButton
+                  endpoint={`/api/admin/songs/${s.id}`}
+                  confirm="archive this song? its lyric page stops being visible."
+                  label="archive"
+                />
               </div>
             )}
           </div>

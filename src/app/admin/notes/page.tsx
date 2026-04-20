@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import { NoteForm } from "./NoteForm";
-import { ArchiveButton } from "./ArchiveButton";
+import { ConfirmActionButton } from "@/components/ConfirmActionButton";
 
 export const dynamic = "force-dynamic";
 
@@ -59,7 +59,13 @@ export default async function AdminNotes() {
                 listens · {n.publishedAt.toISOString().slice(0, 10)}
               </div>
             </div>
-            {n.active && <ArchiveButton id={n.id} />}
+            {n.active && (
+              <ConfirmActionButton
+                endpoint={`/api/admin/notes/${n.id}`}
+                confirm="archive this voice note? fans stop seeing it."
+                label="archive"
+              />
+            )}
           </div>
         ))}
       </div>

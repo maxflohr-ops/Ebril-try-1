@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { DirectionForm } from "./DirectionForm";
-import { ArchiveButton } from "./ArchiveButton";
+import { ConfirmActionButton } from "@/components/ConfirmActionButton";
 
 export const dynamic = "force-dynamic";
 
@@ -96,7 +96,13 @@ export default async function AdminDirections() {
               >
                 moodboard
               </Link>
-              {d.active && <ArchiveButton id={d.id} />}
+              {d.active && (
+                <ConfirmActionButton
+                  endpoint={`/api/admin/directions/${d.id}`}
+                  confirm="archive this direction? fans stop seeing it."
+                  label="archive"
+                />
+              )}
             </div>
           </div>
         ))}

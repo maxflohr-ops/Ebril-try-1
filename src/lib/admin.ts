@@ -24,6 +24,3 @@ export async function requireAdmin(): Promise<{ userId: string } | null> {
   return { userId: session.userId };
 }
 
-export async function isAdmin(): Promise<boolean> {
-  return (await requireAdmin()) !== null;
-}

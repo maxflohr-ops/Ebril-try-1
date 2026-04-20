@@ -22,11 +22,6 @@ export function verifyToken(tourDateId: string, secret: string, provided: string
   }
 }
 
-export function checkinUrl(baseUrl: string, tourDateId: string, secret: string): string {
-  const t = tokenFor(tourDateId, secret);
-  return `${baseUrl.replace(/\/$/, "")}/api/shows/${tourDateId}/checkin?t=${t}`;
-}
-
 export interface CheckinResult {
   ok: boolean;
   reason?: "bad_token" | "too_early" | "too_late" | "not_found" | "already";

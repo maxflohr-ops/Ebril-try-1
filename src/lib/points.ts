@@ -54,21 +54,3 @@ export async function credit(input: CreditInput, client: Tx = prisma) {
   });
 }
 
-export async function debit(
-  userId: string,
-  amount: number,
-  reason: TransactionReason,
-  refId?: string,
-  client: Tx = prisma
-) {
-  if (amount <= 0) throw new Error("debit amount must be positive");
-  return client.pointTransaction.create({
-    data: {
-      userId,
-      delta: -amount,
-      reason,
-      refId,
-      expiresAt: null,
-    },
-  });
-}

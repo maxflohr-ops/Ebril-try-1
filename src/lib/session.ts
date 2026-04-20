@@ -4,7 +4,6 @@ import { cookies } from "next/headers";
 export interface SessionData {
   userId?: string;
   oauthState?: string;
-  isAdmin?: boolean;
   pendingReferralCode?: string;
   pendingCheckinId?: string;
   pendingCheckinToken?: string;

@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import { RewardForm } from "./RewardForm";
-import { ArchiveButton } from "./ArchiveButton";
+import { ConfirmActionButton } from "@/components/ConfirmActionButton";
 
 export const dynamic = "force-dynamic";
 
@@ -46,7 +46,13 @@ export default async function AdminRewards() {
                 {r.stock !== null ? ` · stock: ${r.stock}` : ""}
               </div>
             </div>
-            {r.active && <ArchiveButton id={r.id} />}
+            {r.active && (
+              <ConfirmActionButton
+                endpoint={`/api/admin/rewards/${r.id}`}
+                confirm="archive this reward? fans won't see it anymore."
+                label="archive"
+              />
+            )}
           </div>
         ))}
       </div>

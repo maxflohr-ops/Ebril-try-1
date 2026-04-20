@@ -2,6 +2,7 @@ import { prisma } from "./db";
 import { fetchCurrentMembership, fetchIdentity, refreshTokens } from "./patreon";
 import { credit } from "./points";
 import { recalcUserTier } from "./tiers";
+import { decryptMaybe, encryptMaybe } from "./crypto";
 
 const REFRESH_WINDOW_MS = 24 * 60 * 60 * 1000;
 
@@ -16,20 +17,31 @@ export async function ensureFreshToken(userId: string): Promise<string | null> {
   });
   if (!user?.patreonAccessToken) return null;
 
+  // Rows may be encrypted envelopes or legacy plaintext — decryptMaybe
+  // handles both. If the envelope is malformed (e.g. ENCRYPTION_KEY was
+  // rotated without re-encrypting), the user will need to re-auth.
+  const access = decryptMaybe(user.patreonAccessToken);
+  const refresh = user.patreonRefreshToken
+    ? decryptMaybe(user.patreonRefreshToken)
+    : null;
+  if (!access) return null;
+
   const expiresAt = user.patreonTokenExpires?.getTime() ?? 0;
   const fresh = expiresAt - Date.now() > REFRESH_WINDOW_MS;
-  if (fresh) return user.patreonAccessToken;
+  if (fresh) return access;
 
-  if (!user.patreonRefreshToken) return user.patreonAccessToken;
+  if (!refresh) return access;
 
   try {
-    const tokens = await refreshTokens(user.patreonRefreshToken);
+    const tokens = await refreshTokens(refresh);
     const newExpiresAt = new Date(Date.now() + tokens.expires_in * 1000);
     await prisma.user.update({
       where: { id: userId },
       data: {
-        patreonAccessToken: tokens.access_token,
-        patreonRefreshToken: tokens.refresh_token,
+        patreonAccessToken:
+          encryptMaybe(tokens.access_token) ?? tokens.access_token,
+        patreonRefreshToken:
+          encryptMaybe(tokens.refresh_token) ?? tokens.refresh_token,
         patreonTokenExpires: newExpiresAt,
       },
     });

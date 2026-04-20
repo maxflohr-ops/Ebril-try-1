@@ -59,7 +59,6 @@ export async function GET() {
   if (!session.userId) return NextResponse.json({ error: "unauthenticated" }, { status: 401 });
   const subs = await prisma.dropSubscription.findMany({
     where: { userId: session.userId },
-    include: { /* song join omitted for perf */ },
   });
   return NextResponse.json({ subscriptions: subs });
 }

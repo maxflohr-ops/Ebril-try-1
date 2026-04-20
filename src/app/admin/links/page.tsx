@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import { LinkForm } from "./LinkForm";
-import { DeleteButton } from "./DeleteButton";
+import { ConfirmActionButton } from "@/components/ConfirmActionButton";
 
 export const dynamic = "force-dynamic";
 
@@ -51,7 +51,11 @@ export default async function AdminLinks() {
                 {l.url}
               </div>
             </div>
-            <DeleteButton id={l.id} />
+            <ConfirmActionButton
+              endpoint={`/api/admin/links/${l.id}`}
+              confirm="delete this link?"
+              label="delete"
+            />
           </div>
         ))}
       </div>

@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import { RitualForm } from "./RitualForm";
-import { DeleteButton } from "./DeleteButton";
+import { ConfirmActionButton } from "@/components/ConfirmActionButton";
 
 export const dynamic = "force-dynamic";
 
@@ -57,7 +57,11 @@ export default async function AdminRituals() {
                     .replace("T", " ")} · {r._count.claims} claimed
                 </div>
               </div>
-              <DeleteButton id={r.id} />
+              <ConfirmActionButton
+                endpoint={`/api/admin/rituals/${r.id}`}
+                confirm="delete this ritual? fans who already claimed keep their points."
+                label="delete"
+              />
             </div>
           );
         })}

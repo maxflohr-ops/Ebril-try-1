@@ -12,6 +12,7 @@ import { recalcUserTier } from "@/lib/tiers";
 import { track } from "@/lib/analytics";
 import { COLLECTIBLE_KEYS, grantCollectible } from "@/lib/collectibles";
 import { performCheckin } from "@/lib/tour";
+import { encryptMaybe } from "@/lib/crypto";
 
 export async function GET(req: NextRequest) {
   const session = await getSession();
@@ -59,14 +60,21 @@ export async function GET(req: NextRequest) {
   }
   session.pendingReferralCode = undefined;
 
+  // Encrypt at rest so a DB snapshot leak isn't full Patreon account
+  // takeover. encryptMaybe falls through plaintext when no ENCRYPTION_KEY
+  // is configured (dev default) and produces an opaque envelope otherwise;
+  // decryptMaybe on the read side recognizes both shapes.
+  const encAccess = encryptMaybe(tokens.access_token) ?? tokens.access_token;
+  const encRefresh = encryptMaybe(tokens.refresh_token) ?? tokens.refresh_token;
+
   const user = await prisma.user.upsert({
     where: { patreonUserId: identity.id },
     update: {
       email: identity.email,
       displayName: identity.fullName,
       avatarUrl: identity.avatarUrl,
-      patreonAccessToken: tokens.access_token,
-      patreonRefreshToken: tokens.refresh_token,
+      patreonAccessToken: encAccess,
+      patreonRefreshToken: encRefresh,
       patreonTokenExpires: expiresAt,
     },
     create: {
@@ -74,8 +82,8 @@ export async function GET(req: NextRequest) {
       email: identity.email,
       displayName: identity.fullName,
       avatarUrl: identity.avatarUrl,
-      patreonAccessToken: tokens.access_token,
-      patreonRefreshToken: tokens.refresh_token,
+      patreonAccessToken: encAccess,
+      patreonRefreshToken: encRefresh,
       patreonTokenExpires: expiresAt,
       referredById,
     },

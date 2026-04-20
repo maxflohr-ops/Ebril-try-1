@@ -7,18 +7,6 @@ import { grantCollectible } from "./collectibles";
 // deltas so a fan who goes straight from pending → viral gets the full viral
 // amount, and a fan who goes pending → approved → featured → viral gets the
 // same cumulative total.
-const RANK: Record<ClipStatus, number> = {
-  pending: 0,
-  rejected: 0,
-  approved: 1,
-  featured: 2,
-  viral: 3,
-};
-
-export function shouldCreditDelta(previous: ClipStatus, next: ClipStatus): boolean {
-  return RANK[next] > RANK[previous];
-}
-
 export interface MovedClip {
   id: string;
   userId: string;

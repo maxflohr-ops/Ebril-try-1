@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import { PointPackForm } from "./PointPackForm";
-import { ArchiveButton } from "./ArchiveButton";
+import { ConfirmActionButton } from "@/components/ConfirmActionButton";
 
 export const dynamic = "force-dynamic";
 
@@ -51,7 +51,13 @@ export default async function AdminPointPacks() {
                 {p.currency}
               </div>
             </div>
-            {p.active && <ArchiveButton id={p.id} />}
+            {p.active && (
+              <ConfirmActionButton
+                endpoint={`/api/admin/point-packs/${p.id}`}
+                confirm="archive this pack? fans won't see it anymore."
+                label="archive"
+              />
+            )}
           </div>
         ))}
       </div>
