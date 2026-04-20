@@ -202,7 +202,124 @@ async function main() {
     });
   }
 
-  console.log("Seeded tiers, point packs, external links, collectibles, songs.");
+  await prisma.collectible.upsert({
+    where: { key: "held_clip" },
+    update: {
+      name: "held clip",
+      flavor: "you made something i kept. this one is for you.",
+      tapeColor: "#D89B7A",
+      labelColor: "#15100E",
+      rarity: "rare",
+      sortOrder: 10,
+    },
+    create: {
+      key: "held_clip",
+      name: "held clip",
+      flavor: "you made something i kept. this one is for you.",
+      tapeColor: "#D89B7A",
+      labelColor: "#15100E",
+      rarity: "rare",
+      sortOrder: 10,
+    },
+  });
+
+  const copula = await prisma.era.upsert({
+    where: { slug: "in-copula" },
+    update: {
+      name: "In Copula",
+      tagline: "a dusk-to-dawn journey. if you heard the album, you're already here.",
+      description:
+        "the first era — field recordings from hamilton and amman, lo-fi folk, shoegaze. the songs hold space instead of performing intensity. directions inside are for the kind of clip that doesn't shout.",
+      accentColor: "#D89B7A",
+      secondaryColor: "#6B4A5E",
+      isCurrent: true,
+      sortOrder: 1,
+      startsAt: new Date("2025-05-01T00:00:00Z"),
+    },
+    create: {
+      slug: "in-copula",
+      name: "In Copula",
+      tagline: "a dusk-to-dawn journey. if you heard the album, you're already here.",
+      description:
+        "the first era — field recordings from hamilton and amman, lo-fi folk, shoegaze. the songs hold space instead of performing intensity. directions inside are for the kind of clip that doesn't shout.",
+      accentColor: "#D89B7A",
+      secondaryColor: "#6B4A5E",
+      isCurrent: true,
+      sortOrder: 1,
+      startsAt: new Date("2025-05-01T00:00:00Z"),
+    },
+  });
+  await prisma.era.updateMany({
+    where: { isCurrent: true, id: { not: copula.id } },
+    data: { isCurrent: false },
+  });
+
+  const stranger = await prisma.song.findUnique({ where: { slug: "stranger-in-you" } });
+  const anticipate = await prisma.song.findUnique({ where: { slug: "anticipate-heartbreak" } });
+
+  const directions = [
+    {
+      slug: "dusk-window",
+      title: "dusk window",
+      direction:
+        "film the view from your window right before it goes dark. no talking, no face-cam, just the light doing its thing. soundtrack it to stranger in you.\n\nvertical, ~30 seconds, no cuts if you can help it.",
+      platformHint: "tiktok",
+      hashtagHint: "duskwindow",
+      songId: stranger?.id ?? null,
+      pointsApproved: 150,
+      pointsFeatured: 800,
+      pointsViral: 4000,
+      viralThreshold: 250000,
+      featuredCollectibleKey: "held_clip",
+      sortOrder: 1,
+    },
+    {
+      slug: "anticipate-heartbreak-letter",
+      title: "read a letter you never sent",
+      direction:
+        "a letter you never sent, read quietly to yourself on camera, with anticipate heartbreak playing underneath. you don't have to show your face.\n\nyou choose how long. one take.",
+      platformHint: "instagram reel",
+      hashtagHint: "anticipateheartbreak",
+      songId: anticipate?.id ?? null,
+      pointsApproved: 150,
+      pointsFeatured: 800,
+      pointsViral: 4000,
+      viralThreshold: 150000,
+      featuredCollectibleKey: "held_clip",
+      sortOrder: 2,
+    },
+    {
+      slug: "field-recording",
+      title: "your own field recording",
+      direction:
+        "walk outside where you live. record thirty seconds of the place — traffic, wind, someone's kid, cutlery. lay stranger in you (or any track from the record) underneath. post it wherever you post things.\n\nbonus if you tell me where you were.",
+      platformHint: "tiktok",
+      hashtagHint: "incopula",
+      songId: null,
+      pointsApproved: 100,
+      pointsFeatured: 600,
+      pointsViral: 3000,
+      viralThreshold: 100000,
+      featuredCollectibleKey: "held_clip",
+      sortOrder: 3,
+    },
+  ];
+
+  for (const d of directions) {
+    const existing = await prisma.clippingBrief.findUnique({
+      where: { eraId_slug: { eraId: copula.id, slug: d.slug } },
+    });
+    const data = { ...d, eraId: copula.id };
+    if (existing) {
+      await prisma.clippingBrief.update({ where: { id: existing.id }, data });
+    } else {
+      await prisma.clippingBrief.create({ data });
+    }
+  }
+
+  console.log(
+    "Seeded tiers, point packs, external links, collectibles, songs, era, directions."
+  );
 }
 
 main()

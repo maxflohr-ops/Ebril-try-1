@@ -83,6 +83,7 @@ enum TransactionReason {
   stripe_top_up
   diary_entry
   ritual_claim
+  clip_approved
 }
 
 model Tier {
@@ -435,5 +436,103 @@ model Song {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
+  directions ClippingBrief[]
+
   @@index([active, sortOrder])
+}
+
+model Era {
+  id            String   @id @default(uuid())
+  slug          String   @unique
+  name          String
+  tagline       String?
+  description   String?
+  accentColor   String   @default("#D89B7A")
+  secondaryColor String  @default("#6B4A5E")
+  artworkUrl    String?
+  startsAt      DateTime?
+  endsAt        DateTime?
+  isCurrent     Boolean  @default(false)
+  sortOrder     Int      @default(0)
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  directions ClippingBrief[]
+
+  @@index([active, isCurrent, sortOrder])
+}
+
+model ClippingBrief {
+  id                      String   @id @default(uuid())
+  eraId                   String
+  era                     Era      @relation(fields: [eraId], references: [id], onDelete: Cascade)
+  songId                  String?
+  song                    Song?    @relation(fields: [songId], references: [id])
+  slug                    String
+  title                   String
+  direction               String
+  exampleUrl              String?
+  coverUrl                String?
+  platformHint            String?
+  hashtagHint             String?
+  pointsApproved          Int      @default(100)
+  pointsFeatured          Int      @default(500)
+  pointsViral             Int      @default(2500)
+  viralThreshold          Int?
+  featuredCollectibleKey  String?
+  active                  Boolean  @default(true)
+  sortOrder               Int      @default(0)
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  clips Clip[]
+
+  @@unique([eraId, slug])
+  @@index([active, sortOrder])
+  @@index([eraId])
+}
+
+model Clip {
+  id                String     @id @default(uuid())
+  userId            String
+  briefId           String
+  brief             ClippingBrief @relation(fields: [briefId], references: [id], onDelete: Cascade)
+  platform          ClipPlatform
+  url               String
+  caption           String?
+  status            ClipStatus @default(pending)
+  viewCount         Int        @default(0)
+  viewCountUpdatedAt DateTime?
+  pointsAwarded     Int        @default(0)
+  rejectedReason    String?
+  adminNotes        String?
+  reviewedById      String?
+  reviewedAt        DateTime?
+  featuredAt        DateTime?
+  viralAt           DateTime?
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+
+  @@index([userId, createdAt])
+  @@index([briefId, status])
+  @@index([status, createdAt])
+}
+
+enum ClipPlatform {
+  tiktok
+  instagram_reel
+  youtube_short
+  youtube
+  twitter
+  bluesky
+  other
+}
+
+enum ClipStatus {
+  pending
+  approved
+  featured
+  viral
+  rejected
 }

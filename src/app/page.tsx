@@ -111,6 +111,9 @@ export default async function Home() {
         }}
       >
         <Link href="/songs" className="nav-chip">songs</Link>
+        <Link href="/eras" className="nav-chip">eras</Link>
+        <Link href="/my-clips" className="nav-chip">your clips</Link>
+        <Link href="/wall" className="nav-chip">the wall</Link>
         <Link href="/diary" className="nav-chip">dusk diary</Link>
         <Link href="/notes" className="nav-chip">voice notes</Link>
         <Link href="/shows" className="nav-chip">shows</Link>
