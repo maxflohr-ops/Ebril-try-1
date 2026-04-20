@@ -152,5 +152,24 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(new URL(`/shows?${qs.toString()}`, req.url));
   }
 
+  // First-time sign-in + no prior activity → welcome flow. Returning fans
+  // who predate the welcome flow never see it: we stamp onboardedAt the
+  // first time they come back so the route resolves straight home.
+  if (!user.onboardedAt) {
+    if (!existing) {
+      return NextResponse.redirect(new URL("/welcome", req.url));
+    }
+    const hasActivity = await prisma.pointTransaction.count({
+      where: { userId: user.id },
+    });
+    if (hasActivity === 0) {
+      return NextResponse.redirect(new URL("/welcome", req.url));
+    }
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { onboardedAt: new Date() },
+    });
+  }
+
   return NextResponse.redirect(new URL("/", req.url));
 }
