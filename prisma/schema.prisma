@@ -93,8 +93,9 @@ model Tier {
   multiplier            Float  @default(1.0)
   perks                 Json   @default("[]")
 
-  users   User[]
-  rewards Reward[]
+  users      User[]
+  rewards    Reward[]
+  voiceNotes VoiceNote[] @relation("VoiceNoteTier")
 }
 
 model Campaign {
@@ -348,4 +349,35 @@ model CollectibleGrant {
   @@unique([userId, collectibleId])
   @@index([userId])
   @@index([collectibleId])
+}
+
+model VoiceNote {
+  id             String   @id @default(uuid())
+  title          String
+  caption        String
+  audioUrl       String
+  durationSec    Int
+  tierRequiredId String?
+  tierRequired   Tier?    @relation("VoiceNoteTier", fields: [tierRequiredId], references: [id])
+  publishedAt    DateTime @default(now())
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+
+  listens VoiceNoteListen[]
+
+  @@index([active, publishedAt])
+}
+
+model VoiceNoteListen {
+  id              String    @id @default(uuid())
+  userId          String
+  voiceNoteId     String
+  voiceNote       VoiceNote @relation(fields: [voiceNoteId], references: [id], onDelete: Cascade)
+  secondsListened Int       @default(0)
+  completedAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([userId, voiceNoteId])
+  @@index([voiceNoteId])
 }
