@@ -62,7 +62,7 @@ export default async function Home() {
         </div>
       </header>
 
-      <BalanceCard balance={balance} />
+      <BalanceCard balance={balance} userKey={user.id} />
 
       <div style={{ marginTop: 20 }}>
         <TierCard
@@ -71,6 +71,7 @@ export default async function Home() {
           progressPct={progress.progressPct}
           monthlyCents={progress.qualifyingCentsPerMonth}
           nextThresholdCents={progress.next?.thresholdCentsPerMonth ?? null}
+          userKey={user.id}
         />
       </div>
 

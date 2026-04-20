@@ -1,6 +1,6 @@
 import { BalanceCounter } from "./BalanceCounter";
 
-export function BalanceCard({ balance }: { balance: number }) {
+export function BalanceCard({ balance, userKey }: { balance: number; userKey?: string }) {
   return (
     <div
       style={{
@@ -21,7 +21,7 @@ export function BalanceCard({ balance }: { balance: number }) {
           letterSpacing: "-0.03em",
         }}
       >
-        <BalanceCounter value={balance} />
+        <BalanceCounter value={balance} userKey={userKey} />
       </div>
       <div
         style={{

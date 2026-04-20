@@ -255,6 +255,137 @@ h4 {
   }
 }
 
+@keyframes ember-rise {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 0) scale(0.85);
+  }
+  15% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -80px) scale(0.55);
+  }
+}
+
+.ember {
+  position: absolute;
+  left: 50%;
+  bottom: 38%;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--accent);
+  box-shadow: 0 0 12px 2px rgba(216, 155, 122, 0.7);
+  pointer-events: none;
+  animation: ember-rise 1200ms var(--ease) forwards;
+  filter: blur(0.5px);
+}
+
+@keyframes flower-drift {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) rotate(var(--r, 0deg));
+  }
+  25% {
+    opacity: 0.55;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-100px) rotate(calc(var(--r, 0deg) + 18deg));
+  }
+}
+
+.flower {
+  position: absolute;
+  top: 60%;
+  width: 14px;
+  height: 14px;
+  color: var(--accent);
+  opacity: 0;
+  animation: flower-drift 1600ms var(--ease) forwards;
+  pointer-events: none;
+}
+
+@keyframes dawn-sweep {
+  0% {
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.dawn-sweep {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    100deg,
+    transparent 0%,
+    rgba(216, 155, 122, 0.45) 40%,
+    rgba(201, 112, 100, 0.35) 60%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: dawn-sweep 640ms var(--ease) forwards;
+  pointer-events: none;
+}
+
+@keyframes letter-in {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tier-letters span {
+  display: inline-block;
+  opacity: 0;
+  animation: letter-in 260ms var(--ease) forwards;
+  animation-delay: calc(var(--i) * 28ms);
+}
+
+@keyframes check-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.tier-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: var(--success);
+  color: #15100e;
+  margin-left: 10px;
+  vertical-align: middle;
+  opacity: 0;
+  animation: check-in 400ms var(--ease-overshoot) forwards;
+  animation-delay: 400ms;
+  font-size: 11px;
+}
+
 .nav-chip {
   display: inline-flex;
   align-items: center;
