@@ -285,3 +285,32 @@ model RitualClaim {
   @@unique([userId, ritualId])
   @@index([ritualId])
 }
+
+model ExternalLink {
+  id         String     @id @default(uuid())
+  kind       LinkKind
+  label      String
+  url        String
+  extra      Json?
+  sortOrder  Int        @default(0)
+  active     Boolean    @default(true)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  @@index([kind, active])
+}
+
+enum LinkKind {
+  spotify_artist
+  spotify_featured
+  youtube_channel
+  youtube_featured
+  apple_music
+  shopify_store
+  bandcamp
+  soundcloud
+  instagram
+  tiktok
+  discord
+  website
+}

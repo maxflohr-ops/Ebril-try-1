@@ -6,7 +6,9 @@ import { getTierProgress } from "@/lib/tiers";
 import { BalanceCard } from "@/components/BalanceCard";
 import { TierCard } from "@/components/TierCard";
 import { RitualCard } from "@/components/RitualCard";
+import { FindMeCard } from "@/components/FindMeCard";
 import { activeRitualForUser } from "@/lib/rituals";
+import { getSocialLinks, getShopifyStore } from "@/lib/externalLinks";
 
 export const dynamic = "force-dynamic";
 
@@ -17,10 +19,12 @@ export default async function Home() {
   const user = await prisma.user.findUnique({ where: { id: session.userId } });
   if (!user) return <Landing />;
 
-  const [balance, progress, ritual] = await Promise.all([
+  const [balance, progress, ritual, socialLinks, shopifyStore] = await Promise.all([
     getBalance(user.id),
     getTierProgress(user.id),
     activeRitualForUser(user.id),
+    getSocialLinks(),
+    getShopifyStore(),
   ]);
 
   return (
@@ -108,10 +112,26 @@ export default async function Home() {
       >
         <Link href="/diary" className="nav-chip">dusk diary</Link>
         <Link href="/rewards" className="nav-chip">rewards</Link>
+        {shopifyStore && (
+          <Link href="/shop" className="nav-chip">merch</Link>
+        )}
         <Link href="/redemptions" className="nav-chip">redemptions</Link>
         <Link href="/points/buy" className="nav-chip">buy points</Link>
         <Link href="/profile" className="nav-chip">profile</Link>
       </nav>
+
+      {socialLinks.length > 0 && (
+        <div style={{ marginTop: 36 }}>
+          <FindMeCard
+            links={socialLinks.map((l) => ({
+              id: l.id,
+              kind: l.kind,
+              label: l.label,
+              url: l.url,
+            }))}
+          />
+        </div>
+      )}
 
       <section style={{ marginTop: 48 }}>
         <div className="eyebrow" style={{ marginBottom: 12 }}>how to earn</div>

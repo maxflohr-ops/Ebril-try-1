@@ -17,6 +17,8 @@ Patreon-connected loyalty app for Ebril. See [`SPEC.md`](./SPEC.md) for the full
 - [x] **M4** — Streaks, birthday, referral, expiry warnings, audit log
 - [x] **M5** — PWA, push notifications, analytics, load test
 - [x] **M6** — Stripe path for non-Patreon fans (point packs + cash rewards)
+- [x] **M7** — Dusk diary + listening rituals (music-fan loop)
+- [x] **M8** — Spotify / YouTube / Shopify (click-out links + product grid)
 
 ## Stripe setup
 

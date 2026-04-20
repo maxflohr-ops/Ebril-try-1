@@ -43,6 +43,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
           <Link href="/admin/rewards">rewards</Link>
           <Link href="/admin/point-packs">point packs</Link>
           <Link href="/admin/redemptions">redemptions</Link>
+          <Link href="/admin/links">find me</Link>
           <Link href="/admin/diary">shared diary</Link>
           <Link href="/admin/audit">audit</Link>
         </nav>
