@@ -1,7 +1,7 @@
-import { redirect } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { getSession } from "@/lib/session";
+import { ComeInsideRail } from "@/components/ComeInsideRail";
 
 export const dynamic = "force-dynamic";
 
@@ -17,7 +17,7 @@ const PLATFORM_LABEL: Record<string, string> = {
 
 export default async function Wall() {
   const session = await getSession();
-  if (!session.userId) redirect("/");
+  const signedIn = !!session.userId;
 
   const clips = await prisma.clip.findMany({
     where: { status: { in: ["featured", "viral"] } },
@@ -173,6 +173,10 @@ export default async function Wall() {
           </div>
         </section>
       ))}
+
+      {!signedIn && (
+        <ComeInsideRail line="the wall is half the story. come inside to make a clip that lands here, earn points when it carries, keep a cassette for the moment it goes." />
+      )}
     </main>
   );
 }

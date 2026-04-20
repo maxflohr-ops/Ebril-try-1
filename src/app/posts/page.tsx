@@ -1,13 +1,13 @@
-import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { getSession } from "@/lib/session";
 import { PostCard } from "@/components/PostCard";
+import { ComeInsideRail } from "@/components/ComeInsideRail";
 
 export const dynamic = "force-dynamic";
 
 export default async function PostsFeed() {
   const session = await getSession();
-  if (!session.userId) redirect("/");
+  const signedIn = !!session.userId;
 
   const [posts, liked] = await Promise.all([
     prisma.post.findMany({
@@ -16,10 +16,12 @@ export default async function PostsFeed() {
       take: 60,
       include: { _count: { select: { likes: true } } },
     }),
-    prisma.postLike.findMany({
-      where: { userId: session.userId },
-      select: { postId: true },
-    }),
+    signedIn
+      ? prisma.postLike.findMany({
+          where: { userId: session.userId! },
+          select: { postId: true },
+        })
+      : Promise.resolve([] as { postId: string }[]),
   ]);
   const likedSet = new Set(liked.map((l) => l.postId));
 
@@ -76,10 +78,15 @@ export default async function PostsFeed() {
               pinned={p.pinned}
               likeCount={p._count.likes}
               liked={likedSet.has(p.id)}
+              signedIn={signedIn}
             />
           ))
         )}
       </div>
+
+      {!signedIn && (
+        <ComeInsideRail line="hold the moments that land, write your own diary pages, earn points for the clips you make — all free once you're in." />
+      )}
     </main>
   );
 }

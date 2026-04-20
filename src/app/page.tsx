@@ -16,10 +16,19 @@ export const dynamic = "force-dynamic";
 
 export default async function Home() {
   const session = await getSession();
-  if (!session.userId) return <Landing />;
+  if (!session.userId) {
+    // Show a landing page but fetch a preview post so anonymous visitors
+    // see a living moment above the sign-in CTA.
+    const previewPost = await prisma.post.findFirst({
+      where: { active: true },
+      orderBy: [{ pinned: "desc" }, { publishedAt: "desc" }],
+      include: { _count: { select: { likes: true } } },
+    });
+    return <Landing previewPost={previewPost} />;
+  }
 
   const user = await prisma.user.findUnique({ where: { id: session.userId } });
-  if (!user) return <Landing />;
+  if (!user) return <Landing previewPost={null} />;
 
   const [
     balance,
@@ -248,13 +257,19 @@ export default async function Home() {
   );
 }
 
-function Landing() {
+type PreviewPost =
+  | (Awaited<ReturnType<typeof prisma.post.findFirst>> & {
+      _count: { likes: number };
+    })
+  | null;
+
+function Landing({ previewPost }: { previewPost: PreviewPost }) {
   return (
     <main
       style={{
-        maxWidth: 520,
+        maxWidth: 560,
         margin: "0 auto",
-        padding: "96px 24px",
+        padding: "64px 24px 96px",
         textAlign: "center",
         position: "relative",
       }}
@@ -302,6 +317,59 @@ function Landing() {
       >
         sign in with patreon. nothing is behind a paywall you can&rsquo;t see around.
       </div>
+
+      {/* Free, anonymous things to do before committing. */}
+      <div
+        style={{
+          marginTop: 40,
+          display: "flex",
+          gap: 10,
+          flexWrap: "wrap",
+          justifyContent: "center",
+        }}
+      >
+        <Link href="/vibe" className="nav-chip">
+          take the vibe test
+        </Link>
+        <Link href="/songs" className="nav-chip">
+          read the lyrics
+        </Link>
+        <Link href="/posts" className="nav-chip">
+          see the latest moment
+        </Link>
+        <Link href="/wall" className="nav-chip">
+          the wall
+        </Link>
+      </div>
+
+      {previewPost && (
+        <section style={{ marginTop: 48, textAlign: "left" }}>
+          <div
+            className="eyebrow"
+            style={{
+              color: "var(--accent)",
+              textAlign: "center",
+              marginBottom: 14,
+            }}
+          >
+            a moment from the room
+          </div>
+          <PostCard
+            id={previewPost.id}
+            body={previewPost.body}
+            imageUrl={previewPost.imageUrl}
+            audioUrl={previewPost.audioUrl}
+            linkUrl={previewPost.linkUrl}
+            linkLabel={previewPost.linkLabel}
+            moodTag={previewPost.moodTag}
+            publishedAt={previewPost.publishedAt.toISOString()}
+            pinned={previewPost.pinned}
+            likeCount={previewPost._count.likes}
+            liked={false}
+            signedIn={false}
+          />
+        </section>
+      )}
     </main>
   );
 }

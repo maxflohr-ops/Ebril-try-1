@@ -14,6 +14,7 @@ interface Props {
   pinned: boolean;
   likeCount: number;
   liked: boolean;
+  signedIn?: boolean;
 }
 
 const MONTHS = [
@@ -41,6 +42,12 @@ export function PostCard(props: Props) {
   const [busy, setBusy] = useState(false);
 
   async function toggle() {
+    if (props.signedIn === false) {
+      // Anonymous visitor — send them to the OAuth start page so they can
+      // come back and hold it for real. No optimistic flip.
+      window.location.href = "/api/auth/patreon";
+      return;
+    }
     // optimistic
     setLiked((v) => !v);
     setCount((n) => n + (liked ? -1 : 1));
@@ -198,7 +205,11 @@ export function PostCard(props: Props) {
           <span>{count}</span>
         </button>
         <span style={{ color: "var(--text-muted)", fontSize: 12 }}>
-          {liked ? "held close" : "tap the heart if it lands"}
+          {props.signedIn === false
+            ? "come inside to hold it"
+            : liked
+              ? "held close"
+              : "tap the heart if it lands"}
         </span>
       </footer>
     </article>
