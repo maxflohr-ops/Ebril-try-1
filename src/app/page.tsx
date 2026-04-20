@@ -217,6 +217,7 @@ export default async function Home() {
           <Link href="/shop" className="nav-chip">merch</Link>
         )}
         <Link href="/gift" className="nav-chip">gift</Link>
+        <Link href="/wrapped" className="nav-chip">your week</Link>
         <Link href="/redemptions" className="nav-chip">redemptions</Link>
         <Link href="/points/buy" className="nav-chip">buy points</Link>
         <Link href="/profile" className="nav-chip">profile</Link>
