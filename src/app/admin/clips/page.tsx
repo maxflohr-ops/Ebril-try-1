@@ -84,6 +84,9 @@ export default async function AdminClips({
           pointsAwarded={c.pointsAwarded}
           adminNotes={c.adminNotes}
           rejectedReason={c.rejectedReason}
+          urlStatus={c.urlStatus}
+          urlStatusCode={c.urlStatusCode}
+          urlCheckedAt={c.urlCheckedAt?.toISOString() ?? null}
           createdAt={c.createdAt.toISOString()}
           brief={{
             title: c.brief.title,

@@ -29,9 +29,23 @@ interface Props {
   pointsAwarded: number;
   adminNotes: string | null;
   rejectedReason: string | null;
+  urlStatus: string | null;
+  urlStatusCode: number | null;
+  urlCheckedAt: string | null;
   createdAt: string;
   brief: Brief;
   fan: Fan | null;
+}
+
+function URL_CHIP(status: string | null): {
+  label: string;
+  cls: string;
+  note: string;
+} {
+  if (status === "ok") return { label: "live", cls: "chip chip-success", note: "200 ok" };
+  if (status === "unreachable")
+    return { label: "gone", cls: "chip chip-danger", note: "didn't respond" };
+  return { label: "unknown", cls: "chip", note: "platform blocked the bot — confirm by eye" };
 }
 
 export function ModerationRow(props: Props) {
@@ -152,6 +166,42 @@ export function ModerationRow(props: Props) {
         >
           watch ↗ {props.url}
         </a>
+        {(() => {
+          const chip = URL_CHIP(props.urlStatus);
+          return (
+            <div
+              style={{
+                marginTop: 8,
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                flexWrap: "wrap",
+              }}
+            >
+              <span className={chip.cls}>{chip.label}</span>
+              <span style={{ color: "var(--text-muted)", fontSize: 12 }}>
+                {chip.note}
+                {props.urlStatusCode ? ` · ${props.urlStatusCode}` : ""}
+                {props.urlCheckedAt
+                  ? ` · ${new Date(props.urlCheckedAt).toISOString().slice(0, 16).replace("T", " ")}`
+                  : ""}
+              </span>
+              <button
+                type="button"
+                onClick={async () => {
+                  const res = await fetch(`/api/admin/clips/${props.id}/recheck`, {
+                    method: "POST",
+                  });
+                  if (res.ok) router.refresh();
+                }}
+                className="btn btn-ghost"
+                style={{ padding: "4px 10px", fontSize: 12 }}
+              >
+                recheck
+              </button>
+            </div>
+          );
+        })()}
         {props.caption && (
           <div
             style={{

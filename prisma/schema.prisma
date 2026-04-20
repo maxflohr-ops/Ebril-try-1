@@ -488,11 +488,27 @@ model ClippingBrief {
   createdAt               DateTime @default(now())
   updatedAt               DateTime @updatedAt
 
-  clips Clip[]
+  clips       Clip[]
+  inspiration InspirationImage[]
 
   @@unique([eraId, slug])
   @@index([active, sortOrder])
   @@index([eraId])
+}
+
+model InspirationImage {
+  id          String   @id @default(uuid())
+  briefId     String
+  brief       ClippingBrief @relation(fields: [briefId], references: [id], onDelete: Cascade)
+  url         String
+  pinUrl      String?
+  caption     String?
+  attribution String?
+  source      String   @default("pinterest")
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  @@index([briefId, sortOrder])
 }
 
 model Clip {
@@ -513,6 +529,9 @@ model Clip {
   reviewedAt        DateTime?
   featuredAt        DateTime?
   viralAt           DateTime?
+  urlStatus         String?
+  urlStatusCode     Int?
+  urlCheckedAt      DateTime?
   createdAt         DateTime   @default(now())
   updatedAt         DateTime   @updatedAt
 

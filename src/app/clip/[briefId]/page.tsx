@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { getSession } from "@/lib/session";
 import { ClipForm } from "./ClipForm";
 import { CopyField } from "@/components/CopyField";
+import { Moodboard } from "@/components/Moodboard";
 
 export const dynamic = "force-dynamic";
 
@@ -20,6 +21,9 @@ export default async function BriefPage({
     include: {
       era: true,
       song: { select: { title: true, slug: true } },
+      inspiration: {
+        orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+      },
     },
   });
   if (!direction || !direction.active || !direction.era.active) notFound();
@@ -122,6 +126,16 @@ export default async function BriefPage({
           </div>
         )}
       </section>
+
+      <Moodboard
+        images={direction.inspiration.map((i) => ({
+          id: i.id,
+          url: i.url,
+          pinUrl: i.pinUrl,
+          caption: i.caption,
+          attribution: i.attribution,
+        }))}
+      />
 
       {(direction.tiktokSoundUrl || direction.captionTemplate) && (
         <section style={{ marginBottom: 28 }}>

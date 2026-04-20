@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { DirectionForm } from "./DirectionForm";
 import { ArchiveButton } from "./ArchiveButton";
@@ -11,7 +12,7 @@ export default async function AdminDirections() {
       include: {
         era: { select: { name: true, accentColor: true, isCurrent: true } },
         song: { select: { title: true } },
-        _count: { select: { clips: true } },
+        _count: { select: { clips: true, inspiration: true } },
       },
     }),
     prisma.era.findMany({
@@ -83,11 +84,20 @@ export default async function AdminDirections() {
                 style={{ color: "var(--text-muted)", fontSize: 12, marginTop: 6 }}
               >
                 {d.song ? `♪ ${d.song.title} · ` : ""}
-                {d._count.clips} clips · kept +{d.pointsApproved} · held +{d.pointsFeatured}{" "}
-                · carried +{d.pointsViral}
+                {d._count.clips} clips · {d._count.inspiration} pins · kept +
+                {d.pointsApproved} · held +{d.pointsFeatured} · carried +{d.pointsViral}
               </div>
             </div>
-            {d.active && <ArchiveButton id={d.id} />}
+            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              <Link
+                href={`/admin/directions/${d.id}`}
+                className="btn btn-ghost"
+                style={{ textDecoration: "none" }}
+              >
+                moodboard
+              </Link>
+              {d.active && <ArchiveButton id={d.id} />}
+            </div>
           </div>
         ))}
       </div>

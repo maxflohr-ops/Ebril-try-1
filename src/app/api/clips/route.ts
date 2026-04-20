@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { getSession } from "@/lib/session";
 import { rateLimit } from "@/lib/ratelimit";
 import { track } from "@/lib/analytics";
+import { checkUrlLiveness } from "@/lib/urlCheck";
 
 const PLATFORMS = [
   "tiktok",
@@ -76,6 +77,12 @@ export async function POST(req: NextRequest) {
   });
   if (existing) return NextResponse.json({ clip: existing, duplicate: true });
 
+  // Liveness check runs inline but doesn't gate creation — a fan should
+  // always be able to submit, even if a CDN temporarily blocks our HEAD.
+  const check = await checkUrlLiveness(parsed.data.url).catch(
+    () => ({ status: "unknown" as const, statusCode: null })
+  );
+
   const clip = await prisma.clip.create({
     data: {
       userId: session.userId,
@@ -83,12 +90,20 @@ export async function POST(req: NextRequest) {
       platform: parsed.data.platform,
       url: parsed.data.url,
       caption: parsed.data.caption ?? null,
+      urlStatus: check.status,
+      urlStatusCode: check.statusCode,
+      urlCheckedAt: new Date(),
     },
   });
 
   await track(
     "page.viewed",
-    { kind: "clip.submitted", briefId: brief.id, platform: parsed.data.platform },
+    {
+      kind: "clip.submitted",
+      briefId: brief.id,
+      platform: parsed.data.platform,
+      urlStatus: check.status,
+    },
     session.userId
   );
 
