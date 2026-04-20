@@ -18,9 +18,6 @@ export default async function SharedDiary() {
     where: { sharedWithEbril: true },
     orderBy: { createdAt: "desc" },
     take: 100,
-    include: {
-      // leverage denormalized user lookup
-    },
   });
   const userIds = Array.from(new Set(entries.map((e) => e.userId)));
   const users = await prisma.user.findMany({

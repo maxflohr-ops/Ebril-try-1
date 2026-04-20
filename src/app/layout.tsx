@@ -43,7 +43,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en" className={`${fraunces.variable} ${inter.variable}`}>
       <body>
         <div className="grain" aria-hidden />
-        {/* @ts-expect-error async server component */}
         <DemoBanner />
         <div className="page">{children}</div>
         <ServiceWorkerRegister />

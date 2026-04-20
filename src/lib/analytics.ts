@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { prisma } from "./db";
 
 export type EventName =
@@ -20,7 +21,9 @@ export async function track(
     await prisma.analyticsEvent.create({
       data: {
         name,
-        payload: payload ?? undefined,
+        // Prisma's Json input wants its own shape; cast since our payload is
+        // always a plain record at the boundary.
+        payload: payload ? (payload as Prisma.InputJsonValue) : undefined,
         userId: userId ?? null,
       },
     });
