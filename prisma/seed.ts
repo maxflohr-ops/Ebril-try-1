@@ -81,7 +81,98 @@ async function main() {
     }
   }
 
-  console.log("Seeded tiers, point packs, and external links.");
+  const collectibles = [
+    {
+      key: "welcome_in",
+      name: "welcome in",
+      flavor: "the first cassette. for saying yes.",
+      tapeColor: "#D89B7A",
+      labelColor: "#F4ECE2",
+      rarity: "common" as const,
+      sortOrder: 1,
+    },
+    {
+      key: "first_pledge",
+      name: "the first month",
+      flavor: "you stayed for a whole month. thank you.",
+      tapeColor: "#C97064",
+      labelColor: "#F4ECE2",
+      rarity: "common" as const,
+      sortOrder: 2,
+    },
+    {
+      key: "first_redeem",
+      name: "in your hands",
+      flavor: "you took the first thing. it felt good.",
+      tapeColor: "#8BA888",
+      labelColor: "#15100E",
+      rarity: "common" as const,
+      sortOrder: 3,
+    },
+    {
+      key: "first_ritual",
+      name: "the first ritual",
+      flavor: "you pressed play when i asked. hi.",
+      tapeColor: "#6B4A5E",
+      labelColor: "#F4ECE2",
+      rarity: "rare" as const,
+      sortOrder: 4,
+    },
+    {
+      key: "diary_streak_7",
+      name: "seven dusks",
+      flavor: "a full week of pages. i see you.",
+      tapeColor: "#A89A8C",
+      labelColor: "#15100E",
+      rarity: "rare" as const,
+      sortOrder: 5,
+    },
+    {
+      key: "diary_streak_30",
+      name: "a whole moon",
+      flavor: "a month of dusk pages. this one is quiet and rare.",
+      tapeColor: "#1E1815",
+      labelColor: "#D89B7A",
+      rarity: "rare" as const,
+      sortOrder: 6,
+    },
+    {
+      key: "tier_superfan",
+      name: "superfan",
+      flavor: "crossing the first threshold.",
+      tapeColor: "#6B4A5E",
+      labelColor: "#D89B7A",
+      rarity: "rare" as const,
+      sortOrder: 7,
+    },
+    {
+      key: "tier_vip",
+      name: "vip",
+      flavor: "the inner circle. thank you for making this possible.",
+      tapeColor: "#15100E",
+      labelColor: "#D89B7A",
+      rarity: "vip" as const,
+      sortOrder: 8,
+    },
+    {
+      key: "stranger_in_you",
+      name: "stranger in you",
+      flavor: "for the ones who found me first.",
+      tapeColor: "#2A1A1F",
+      labelColor: "#F4ECE2",
+      rarity: "ephemeral" as const,
+      sortOrder: 9,
+    },
+  ];
+  for (const c of collectibles) {
+    await prisma.collectible.upsert({
+      where: { key: c.key },
+      update: c,
+      create: c,
+    });
+  }
+
+  console.log("Seeded tiers, point packs, external links, collectibles.");
 }
 
 main()

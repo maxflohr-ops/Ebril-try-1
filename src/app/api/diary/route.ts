@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { getSession } from "@/lib/session";
-import { createDiaryEntry, DIARY_MOODS } from "@/lib/diary";
+import { consecutiveEntryDays, createDiaryEntry, DIARY_MOODS } from "@/lib/diary";
 import { track } from "@/lib/analytics";
+import { COLLECTIBLE_KEYS, grantCollectible } from "@/lib/collectibles";
 
 const CreateSchema = z.object({
   text: z.string().min(1).max(4000),
@@ -45,6 +46,24 @@ export async function POST(req: NextRequest) {
     { kind: "diary.entry", mood: entry.mood, credited },
     session.userId
   );
+
+  if (credited) {
+    const streak = await consecutiveEntryDays(session.userId);
+    if (streak >= 7) {
+      await grantCollectible({
+        userId: session.userId,
+        key: COLLECTIBLE_KEYS.diaryStreak7,
+        reason: `${streak}-day streak`,
+      });
+    }
+    if (streak >= 30) {
+      await grantCollectible({
+        userId: session.userId,
+        key: COLLECTIBLE_KEYS.diaryStreak30,
+        reason: `${streak}-day streak`,
+      });
+    }
+  }
 
   return NextResponse.json({ entry, credited, pointsAwarded });
 }

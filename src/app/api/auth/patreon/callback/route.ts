@@ -9,6 +9,7 @@ import { prisma } from "@/lib/db";
 import { credit } from "@/lib/points";
 import { recalcUserTier } from "@/lib/tiers";
 import { track } from "@/lib/analytics";
+import { COLLECTIBLE_KEYS, grantCollectible } from "@/lib/collectibles";
 
 export async function GET(req: NextRequest) {
   const session = await getSession();
@@ -101,6 +102,11 @@ export async function GET(req: NextRequest) {
 
   if (!existing) {
     await track("auth.first_signup", { referredById: referredById ?? null }, user.id);
+    await grantCollectible({
+      userId: user.id,
+      key: COLLECTIBLE_KEYS.welcome,
+      reason: "first sign-in",
+    });
   }
   await track("auth.connected", {}, user.id);
 

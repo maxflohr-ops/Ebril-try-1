@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getSession } from "@/lib/session";
 import { claimRitual } from "@/lib/rituals";
+import { prisma } from "@/lib/db";
+import { COLLECTIBLE_KEYS, grantCollectible } from "@/lib/collectibles";
 
 const Schema = z.object({
   reflection: z.string().max(1000).optional().nullable(),
@@ -22,6 +24,18 @@ export async function POST(
       params.id,
       parsed.data.reflection ?? null
     );
+    if (result.credited) {
+      const priorClaims = await prisma.ritualClaim.count({
+        where: { userId: session.userId, id: { not: result.claim.id } },
+      });
+      if (priorClaims === 0) {
+        await grantCollectible({
+          userId: session.userId,
+          key: COLLECTIBLE_KEYS.firstRitual,
+          reason: "first ritual",
+        });
+      }
+    }
     return NextResponse.json(result);
   } catch (err) {
     const msg = err instanceof Error ? err.message : "error";

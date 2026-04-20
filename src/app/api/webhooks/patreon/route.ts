@@ -5,6 +5,7 @@ import { credit } from "@/lib/points";
 import { recalcUserTier } from "@/lib/tiers";
 import { REFERRAL_BONUS } from "@/lib/streaks";
 import { track } from "@/lib/analytics";
+import { COLLECTIBLE_KEYS, grantCollectible } from "@/lib/collectibles";
 
 async function maybeReferralBonus(referredUserId: string) {
   const referred = await prisma.user.findUnique({
@@ -126,6 +127,21 @@ export async function POST(req: NextRequest) {
         await track("campaign.applied", { multiplier, amountCents }, user.id);
       }
       await maybeReferralBonus(user.id);
+
+      const priorCharges = await prisma.pointTransaction.count({
+        where: {
+          userId: user.id,
+          reason: "pledge_charge",
+          refId: { not: refId },
+        },
+      });
+      if (priorCharges === 0) {
+        await grantCollectible({
+          userId: user.id,
+          key: COLLECTIBLE_KEYS.firstPledge,
+          reason: "first paid charge",
+        });
+      }
     }
   }
 
@@ -137,6 +153,19 @@ export async function POST(req: NextRequest) {
       { from: previousTierId, to: newTier?.id ?? null },
       user.id
     );
+    if (newTier?.name === "Superfan") {
+      await grantCollectible({
+        userId: user.id,
+        key: COLLECTIBLE_KEYS.superfan,
+        reason: "tier up",
+      });
+    } else if (newTier?.name === "VIP") {
+      await grantCollectible({
+        userId: user.id,
+        key: COLLECTIBLE_KEYS.vip,
+        reason: "tier up",
+      });
+    }
   }
   return NextResponse.json({ ok: true });
 }

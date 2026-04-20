@@ -314,3 +314,38 @@ enum LinkKind {
   discord
   website
 }
+
+model Collectible {
+  id          String  @id @default(uuid())
+  key         String  @unique
+  name        String
+  flavor      String
+  tapeColor   String  @default("#D89B7A")
+  labelColor  String  @default("#F4ECE2")
+  rarity      CollectibleRarity @default(common)
+  sortOrder   Int     @default(0)
+  active      Boolean @default(true)
+  createdAt   DateTime @default(now())
+
+  grants CollectibleGrant[]
+}
+
+enum CollectibleRarity {
+  common
+  rare
+  vip
+  ephemeral
+}
+
+model CollectibleGrant {
+  id            String      @id @default(uuid())
+  userId        String
+  collectibleId String
+  collectible   Collectible @relation(fields: [collectibleId], references: [id], onDelete: Cascade)
+  reason        String?
+  grantedAt     DateTime    @default(now())
+
+  @@unique([userId, collectibleId])
+  @@index([userId])
+  @@index([collectibleId])
+}

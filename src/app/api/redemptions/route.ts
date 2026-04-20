@@ -5,6 +5,7 @@ import { getSession } from "@/lib/session";
 import { getBalance } from "@/lib/points";
 import { sendEmail } from "@/lib/email";
 import { track } from "@/lib/analytics";
+import { COLLECTIBLE_KEYS, grantCollectible } from "@/lib/collectibles";
 
 const ShippingSchema = z.object({
   name: z.string().min(1),
@@ -133,6 +134,17 @@ export async function POST(req: NextRequest) {
       },
       userId
     );
+
+    const priorRedemptions = await prisma.redemption.count({
+      where: { userId, id: { not: result.redemption.id } },
+    });
+    if (priorRedemptions === 0) {
+      await grantCollectible({
+        userId,
+        key: COLLECTIBLE_KEYS.firstRedeem,
+        reason: result.reward.name,
+      });
+    }
 
     return NextResponse.json({ redemption: result.redemption });
   } catch (err) {
