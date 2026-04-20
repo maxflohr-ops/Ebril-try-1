@@ -2,6 +2,7 @@
   "crons": [
     { "path": "/api/cron/tier-recalc", "schedule": "0 3 * * *" },
     { "path": "/api/cron/daily", "schedule": "0 14 * * *" },
-    { "path": "/api/cron/expire-points", "schedule": "30 3 * * *" }
+    { "path": "/api/cron/expire-points", "schedule": "30 3 * * *" },
+    { "path": "/api/cron/patreon-reconcile", "schedule": "0 4 * * *" }
   ]
 }
