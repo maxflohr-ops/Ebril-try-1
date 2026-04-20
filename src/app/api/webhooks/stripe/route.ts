@@ -109,6 +109,7 @@ export async function POST(req: NextRequest) {
           status: isDigital ? "approved" : "pending",
           shippingAddress: shipping,
           fulfillmentNotes: `Paid via Stripe ${session.id}`,
+          stripeSessionId: session.id,
         },
       });
       if (reward.stock !== null) {

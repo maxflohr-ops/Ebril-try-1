@@ -6,6 +6,7 @@ import { getBalance } from "@/lib/points";
 import { sendEmail } from "@/lib/email";
 import { track } from "@/lib/analytics";
 import { COLLECTIBLE_KEYS, grantCollectible } from "@/lib/collectibles";
+import { rateLimit } from "@/lib/ratelimit";
 
 const ShippingSchema = z.object({
   name: z.string().min(1),
@@ -38,6 +39,20 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   const session = await getSession();
   if (!session.userId) return NextResponse.json({ error: "unauthenticated" }, { status: 401 });
+
+  // 5 redemption attempts per user per 10 seconds — catches double-clicks and
+  // scripted spend attempts without ever blocking a human pacing themselves.
+  const limit = rateLimit(`redeem:${session.userId}`, 5, 10_000);
+  if (!limit.ok) {
+    return NextResponse.json(
+      { error: "rate_limited", retryAfterMs: limit.retryAfterMs },
+      {
+        status: 429,
+        headers: { "retry-after": Math.ceil(limit.retryAfterMs / 1000).toString() },
+      }
+    );
+  }
+
   const parsed = CreateSchema.safeParse(await req.json());
   if (!parsed.success) {
     return NextResponse.json({ error: "invalid", issues: parsed.error.issues }, { status: 400 });

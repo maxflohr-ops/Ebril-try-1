@@ -175,11 +175,14 @@ model Redemption {
   status           RedemptionStatus @default(pending)
   shippingAddress  Json?
   fulfillmentNotes String?
+  stripeSessionId  String?
+  stripeRefundId   String?
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 
   @@index([userId])
   @@index([status])
+  @@index([stripeSessionId])
 }
 
 enum RedemptionStatus {

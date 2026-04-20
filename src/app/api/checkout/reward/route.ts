@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { getSession } from "@/lib/session";
 import { appBaseUrl, stripe } from "@/lib/stripe";
+import { rateLimit } from "@/lib/ratelimit";
 
 export const runtime = "nodejs";
 
@@ -26,6 +27,18 @@ const DIGITAL = new Set(["content_unlock", "discount_code"]);
 export async function POST(req: NextRequest) {
   const session = await getSession();
   if (!session.userId) return NextResponse.json({ error: "unauthenticated" }, { status: 401 });
+
+  const limit = rateLimit(`checkout:${session.userId}`, 5, 10_000);
+  if (!limit.ok) {
+    return NextResponse.json(
+      { error: "rate_limited", retryAfterMs: limit.retryAfterMs },
+      {
+        status: 429,
+        headers: { "retry-after": Math.ceil(limit.retryAfterMs / 1000).toString() },
+      }
+    );
+  }
+
   const parsed = Schema.safeParse(await req.json());
   if (!parsed.success) return NextResponse.json({ error: "invalid" }, { status: 400 });
 

@@ -6,6 +6,7 @@ import { logAudit } from "@/lib/audit";
 import { sendEmail } from "@/lib/email";
 import { sendPushToUser } from "@/lib/push";
 import { track } from "@/lib/analytics";
+import { stripe } from "@/lib/stripe";
 
 const PatchSchema = z.object({
   status: z.enum(["approved", "shipped", "delivered", "cancelled"]),
@@ -74,6 +75,44 @@ export async function PATCH(
 
   await logAudit(admin.userId, `redemption.${status}`, redemption.id, { fulfillmentNotes });
 
+  // If we just cancelled a cash-paid redemption, refund the Stripe charge.
+  // Best-effort: failure here does NOT undo the cancel — we log and surface
+  // to the admin so they can reconcile manually via the Stripe dashboard.
+  let refundWarning: string | null = null;
+  if (
+    status === "cancelled" &&
+    redemption.stripeSessionId &&
+    !redemption.stripeRefundId
+  ) {
+    try {
+      const s = await stripe().checkout.sessions.retrieve(redemption.stripeSessionId, {
+        expand: ["payment_intent"],
+      });
+      const pi = typeof s.payment_intent === "string" ? s.payment_intent : s.payment_intent?.id;
+      if (!pi) {
+        refundWarning = "stripe session had no payment_intent to refund";
+      } else {
+        const refund = await stripe().refunds.create({
+          payment_intent: pi,
+          reason: "requested_by_customer",
+          metadata: { redemptionId: redemption.id },
+        });
+        await prisma.redemption.update({
+          where: { id: redemption.id },
+          data: { stripeRefundId: refund.id },
+        });
+        await logAudit(admin.userId, "redemption.stripe_refunded", redemption.id, {
+          refundId: refund.id,
+          amount: refund.amount,
+        });
+      }
+    } catch (err) {
+      refundWarning =
+        err instanceof Error ? `stripe refund failed: ${err.message}` : "stripe refund failed";
+      console.error("[stripe refund]", err);
+    }
+  }
+
   const subject = subjectFor(status, redemption.reward.name);
 
   if (redemption.user.email) {
@@ -110,5 +149,5 @@ export async function PATCH(
     redemption.userId
   );
 
-  return NextResponse.json({ redemption });
+  return NextResponse.json({ redemption, refundWarning });
 }
