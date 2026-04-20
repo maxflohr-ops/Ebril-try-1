@@ -25,6 +25,8 @@ export function DirectionForm({ eras, songs }: { eras: Era[]; songs: Song[] }) {
   const [coverUrl, setCoverUrl] = useState("");
   const [platformHint, setPlatformHint] = useState("tiktok");
   const [hashtagHint, setHashtagHint] = useState("");
+  const [tiktokSoundUrl, setTiktokSoundUrl] = useState("");
+  const [captionTemplate, setCaptionTemplate] = useState("");
   const [pointsApproved, setPointsApproved] = useState("100");
   const [pointsFeatured, setPointsFeatured] = useState("500");
   const [pointsViral, setPointsViral] = useState("2500");
@@ -48,6 +50,8 @@ export function DirectionForm({ eras, songs }: { eras: Era[]; songs: Song[] }) {
         coverUrl: coverUrl || null,
         platformHint: platformHint || null,
         hashtagHint: hashtagHint || null,
+        tiktokSoundUrl: tiktokSoundUrl || null,
+        captionTemplate: captionTemplate || null,
         pointsApproved: Number(pointsApproved),
         pointsFeatured: Number(pointsFeatured),
         pointsViral: Number(pointsViral),
@@ -168,6 +172,28 @@ export function DirectionForm({ eras, songs }: { eras: Era[]; songs: Song[] }) {
           value={hashtagHint}
           onChange={(e) => setHashtagHint(e.target.value)}
           placeholder="dusk"
+        />
+      </label>
+      <label style={{ gridColumn: "span 4" }}>
+        <div style={{ fontSize: 11, color: "var(--text-muted)" }}>
+          tiktok sound url (tap-to-use — critical for virality)
+        </div>
+        <input
+          style={input}
+          value={tiktokSoundUrl}
+          onChange={(e) => setTiktokSoundUrl(e.target.value)}
+          placeholder="https://www.tiktok.com/music/..."
+        />
+      </label>
+      <label style={{ gridColumn: "span 4" }}>
+        <div style={{ fontSize: 11, color: "var(--text-muted)" }}>
+          caption template (fans copy-paste — include the hashtag)
+        </div>
+        <textarea
+          style={{ ...input, minHeight: 60, resize: "vertical", lineHeight: 1.55 }}
+          value={captionTemplate}
+          onChange={(e) => setCaptionTemplate(e.target.value)}
+          placeholder="what it looks like outside right now. #incopula #duskwindow @ebbionline"
         />
       </label>
       <label>

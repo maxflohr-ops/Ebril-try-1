@@ -7,6 +7,7 @@ import { BalanceCard } from "@/components/BalanceCard";
 import { TierCard } from "@/components/TierCard";
 import { RitualCard } from "@/components/RitualCard";
 import { FindMeCard } from "@/components/FindMeCard";
+import { DirectionHero } from "@/components/DirectionHero";
 import { activeRitualForUser } from "@/lib/rituals";
 import { getSocialLinks, getShopifyStore } from "@/lib/externalLinks";
 
@@ -19,13 +20,25 @@ export default async function Home() {
   const user = await prisma.user.findUnique({ where: { id: session.userId } });
   if (!user) return <Landing />;
 
-  const [balance, progress, ritual, socialLinks, shopifyStore] = await Promise.all([
-    getBalance(user.id),
-    getTierProgress(user.id),
-    activeRitualForUser(user.id),
-    getSocialLinks(),
-    getShopifyStore(),
-  ]);
+  const [balance, progress, ritual, socialLinks, shopifyStore, featuredDirection] =
+    await Promise.all([
+      getBalance(user.id),
+      getTierProgress(user.id),
+      activeRitualForUser(user.id),
+      getSocialLinks(),
+      getShopifyStore(),
+      prisma.clippingBrief.findFirst({
+        where: { active: true, era: { active: true, isCurrent: true } },
+        orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
+        include: {
+          era: { select: { name: true, slug: true, accentColor: true, secondaryColor: true } },
+          song: { select: { title: true } },
+          _count: {
+            select: { clips: { where: { status: { in: ["featured", "viral"] } } } },
+          },
+        },
+      }),
+    ]);
 
   return (
     <main
@@ -82,6 +95,27 @@ export default async function Home() {
         />
       </div>
 
+      {featuredDirection && (
+        <div style={{ marginTop: 20 }}>
+          <DirectionHero
+            briefId={featuredDirection.id}
+            eraName={featuredDirection.era.name}
+            eraSlug={featuredDirection.era.slug}
+            accentColor={featuredDirection.era.accentColor}
+            secondaryColor={featuredDirection.era.secondaryColor}
+            title={featuredDirection.title}
+            direction={featuredDirection.direction}
+            coverUrl={featuredDirection.coverUrl}
+            songTitle={featuredDirection.song?.title ?? null}
+            pointsViral={featuredDirection.pointsViral}
+            hashtagHint={featuredDirection.hashtagHint}
+            platformHint={featuredDirection.platformHint}
+            hasSound={!!featuredDirection.tiktokSoundUrl}
+            liveClipCount={featuredDirection._count.clips}
+          />
+        </div>
+      )}
+
       {ritual && (
         <div style={{ marginTop: 20 }}>
           <RitualCard
@@ -114,6 +148,7 @@ export default async function Home() {
         <Link href="/eras" className="nav-chip">eras</Link>
         <Link href="/my-clips" className="nav-chip">your clips</Link>
         <Link href="/wall" className="nav-chip">the wall</Link>
+        <Link href="/leaderboard" className="nav-chip">who&rsquo;s carrying</Link>
         <Link href="/diary" className="nav-chip">dusk diary</Link>
         <Link href="/notes" className="nav-chip">voice notes</Link>
         <Link href="/shows" className="nav-chip">shows</Link>

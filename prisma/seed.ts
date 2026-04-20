@@ -265,6 +265,9 @@ async function main() {
         "film the view from your window right before it goes dark. no talking, no face-cam, just the light doing its thing. soundtrack it to stranger in you.\n\nvertical, ~30 seconds, no cuts if you can help it.",
       platformHint: "tiktok",
       hashtagHint: "duskwindow",
+      tiktokSoundUrl: null,
+      captionTemplate:
+        "the way the light falls right before it goes.\n#duskwindow #incopula #strangerinyou",
       songId: stranger?.id ?? null,
       pointsApproved: 150,
       pointsFeatured: 800,
@@ -280,6 +283,9 @@ async function main() {
         "a letter you never sent, read quietly to yourself on camera, with anticipate heartbreak playing underneath. you don't have to show your face.\n\nyou choose how long. one take.",
       platformHint: "instagram reel",
       hashtagHint: "anticipateheartbreak",
+      tiktokSoundUrl: null,
+      captionTemplate:
+        "a letter i never sent.\n#anticipateheartbreak #incopula",
       songId: anticipate?.id ?? null,
       pointsApproved: 150,
       pointsFeatured: 800,
@@ -295,6 +301,9 @@ async function main() {
         "walk outside where you live. record thirty seconds of the place — traffic, wind, someone's kid, cutlery. lay stranger in you (or any track from the record) underneath. post it wherever you post things.\n\nbonus if you tell me where you were.",
       platformHint: "tiktok",
       hashtagHint: "incopula",
+      tiktokSoundUrl: null,
+      captionTemplate:
+        "the sound of where i live right now, under her song.\n#incopula #fieldrecording",
       songId: null,
       pointsApproved: 100,
       pointsFeatured: 600,

@@ -476,6 +476,8 @@ model ClippingBrief {
   coverUrl                String?
   platformHint            String?
   hashtagHint             String?
+  tiktokSoundUrl          String?
+  captionTemplate         String?
   pointsApproved          Int      @default(100)
   pointsFeatured          Int      @default(500)
   pointsViral             Int      @default(2500)

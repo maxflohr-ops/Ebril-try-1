@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { getSession } from "@/lib/session";
 import { ClipForm } from "./ClipForm";
+import { CopyField } from "@/components/CopyField";
 
 export const dynamic = "force-dynamic";
 
@@ -121,6 +122,35 @@ export default async function BriefPage({
           </div>
         )}
       </section>
+
+      {(direction.tiktokSoundUrl || direction.captionTemplate) && (
+        <section style={{ marginBottom: 28 }}>
+          <div className="eyebrow" style={{ marginBottom: 10 }}>the tools</div>
+          <p style={{ color: "var(--text-muted)", fontSize: 14, marginBottom: 14 }}>
+            everything you need to post in under a minute.
+          </p>
+          <div style={{ display: "grid", gap: 12 }}>
+            {direction.tiktokSoundUrl && (
+              <a
+                href={direction.tiktokSoundUrl}
+                target="_blank"
+                rel="noreferrer noopener"
+                className="btn"
+                style={{ textDecoration: "none", width: "100%" }}
+              >
+                ♪ use this sound on tiktok ↗
+              </a>
+            )}
+            {direction.captionTemplate && (
+              <CopyField
+                label="caption to paste"
+                value={direction.captionTemplate}
+                multiline
+              />
+            )}
+          </div>
+        </section>
+      )}
 
       <section
         className="surface"
