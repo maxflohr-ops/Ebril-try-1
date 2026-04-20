@@ -5,6 +5,8 @@ import { getBalance } from "@/lib/points";
 import { getTierProgress } from "@/lib/tiers";
 import { BalanceCard } from "@/components/BalanceCard";
 import { TierCard } from "@/components/TierCard";
+import { RitualCard } from "@/components/RitualCard";
+import { activeRitualForUser } from "@/lib/rituals";
 
 export const dynamic = "force-dynamic";
 
@@ -15,9 +17,10 @@ export default async function Home() {
   const user = await prisma.user.findUnique({ where: { id: session.userId } });
   if (!user) return <Landing />;
 
-  const [balance, progress] = await Promise.all([
+  const [balance, progress, ritual] = await Promise.all([
     getBalance(user.id),
     getTierProgress(user.id),
+    activeRitualForUser(user.id),
   ]);
 
   return (
@@ -75,6 +78,25 @@ export default async function Home() {
         />
       </div>
 
+      {ritual && (
+        <div style={{ marginTop: 20 }}>
+          <RitualCard
+            ritual={{
+              id: ritual.id,
+              title: ritual.title,
+              body: ritual.body,
+              trackTitle: ritual.trackTitle,
+              trackUrl: ritual.trackUrl,
+              artworkUrl: ritual.artworkUrl,
+              endsAt: ritual.endsAt.toISOString(),
+              pointsReward: ritual.pointsReward,
+              claimed: ritual.claimed,
+              reflection: ritual.reflection,
+            }}
+          />
+        </div>
+      )}
+
       <nav
         style={{
           display: "flex",
@@ -84,6 +106,7 @@ export default async function Home() {
           justifyContent: "center",
         }}
       >
+        <Link href="/diary" className="nav-chip">dusk diary</Link>
         <Link href="/rewards" className="nav-chip">rewards</Link>
         <Link href="/redemptions" className="nav-chip">redemptions</Link>
         <Link href="/points/buy" className="nav-chip">buy points</Link>

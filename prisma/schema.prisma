@@ -81,6 +81,8 @@ enum TransactionReason {
   expiry
   signup_bonus
   stripe_top_up
+  diary_entry
+  ritual_claim
 }
 
 model Tier {
@@ -228,4 +230,58 @@ model AnalyticsEvent {
 
   @@index([name, createdAt])
   @@index([userId, createdAt])
+}
+
+model DiaryEntry {
+  id              String    @id @default(uuid())
+  userId          String
+  text            String
+  mood            DiaryMood
+  trackTitle      String?
+  trackUrl        String?
+  sharedWithEbril Boolean   @default(false)
+  createdAt       DateTime  @default(now())
+
+  @@index([userId, createdAt])
+  @@index([sharedWithEbril, createdAt])
+}
+
+enum DiaryMood {
+  dusk
+  dawn
+  aching
+  open
+  alone
+  together
+  threeam
+  commute
+}
+
+model Ritual {
+  id            String    @id @default(uuid())
+  title         String
+  body          String
+  trackTitle    String?
+  trackUrl      String?
+  artworkUrl    String?
+  startsAt      DateTime
+  endsAt        DateTime
+  pointsReward  Int       @default(25)
+  createdAt     DateTime  @default(now())
+
+  claims RitualClaim[]
+
+  @@index([startsAt, endsAt])
+}
+
+model RitualClaim {
+  id        String   @id @default(uuid())
+  userId    String
+  ritualId  String
+  ritual    Ritual   @relation(fields: [ritualId], references: [id], onDelete: Cascade)
+  reflection String?
+  claimedAt DateTime @default(now())
+
+  @@unique([userId, ritualId])
+  @@index([ritualId])
 }
