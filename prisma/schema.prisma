@@ -381,3 +381,34 @@ model VoiceNoteListen {
   @@unique([userId, voiceNoteId])
   @@index([voiceNoteId])
 }
+
+model TourDate {
+  id            String   @id @default(uuid())
+  city          String
+  venue         String
+  country       String   @default("CA")
+  startsAt      DateTime
+  doorsAt       DateTime?
+  ticketUrl     String?
+  noteFromEbril String?
+  qrSecret      String   @default(cuid())
+  pointsReward  Int      @default(100)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  checkins TourCheckin[]
+
+  @@index([startsAt])
+}
+
+model TourCheckin {
+  id         String   @id @default(uuid())
+  userId     String
+  tourDateId String
+  tourDate   TourDate @relation(fields: [tourDateId], references: [id], onDelete: Cascade)
+  message    String?
+  checkedAt  DateTime @default(now())
+
+  @@unique([userId, tourDateId])
+  @@index([tourDateId])
+}

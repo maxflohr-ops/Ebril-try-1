@@ -10,6 +10,7 @@ import { credit } from "@/lib/points";
 import { recalcUserTier } from "@/lib/tiers";
 import { track } from "@/lib/analytics";
 import { COLLECTIBLE_KEYS, grantCollectible } from "@/lib/collectibles";
+import { performCheckin } from "@/lib/tour";
 
 export async function GET(req: NextRequest) {
   const session = await getSession();
@@ -111,7 +112,22 @@ export async function GET(req: NextRequest) {
   await track("auth.connected", {}, user.id);
 
   session.userId = user.id;
+
+  const pendingShow = session.pendingCheckinId;
+  const pendingToken = session.pendingCheckinToken;
+  session.pendingCheckinId = undefined;
+  session.pendingCheckinToken = undefined;
   await session.save();
+
+  if (pendingShow && pendingToken) {
+    const result = await performCheckin(user.id, pendingShow, pendingToken);
+    const qs = new URLSearchParams({ show: pendingShow });
+    if (!result.ok) qs.set("err", result.reason ?? "error");
+    else if (result.reason === "already") qs.set("state", "already");
+    else qs.set("state", "checked_in");
+    if (result.pointsAwarded) qs.set("pts", String(result.pointsAwarded));
+    return NextResponse.redirect(new URL(`/shows?${qs.toString()}`, req.url));
+  }
 
   return NextResponse.redirect(new URL("/", req.url));
 }

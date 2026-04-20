@@ -6,6 +6,8 @@ export interface SessionData {
   oauthState?: string;
   isAdmin?: boolean;
   pendingReferralCode?: string;
+  pendingCheckinId?: string;
+  pendingCheckinToken?: string;
 }
 
 const sessionPassword = process.env.SESSION_SECRET;

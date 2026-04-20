@@ -112,6 +112,7 @@ export default async function Home() {
       >
         <Link href="/diary" className="nav-chip">dusk diary</Link>
         <Link href="/notes" className="nav-chip">voice notes</Link>
+        <Link href="/shows" className="nav-chip">shows</Link>
         <Link href="/collection" className="nav-chip">collection</Link>
         <Link href="/rewards" className="nav-chip">rewards</Link>
         {shopifyStore && (
