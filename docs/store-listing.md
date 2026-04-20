@@ -1,21 +1,26 @@
-# Store listing — ebril
+# Store listing — copula
 
 Submission copy for App Store Connect and Google Play Console. Every string below is
 already in her voice (lowercase, unhurried, intimate). Tweak before submission if she
 wants to tighten anything; don't auto-translate without her sign-off.
 
+The app is **free**. In-app top-ups (point packs) and merch checkout are optional;
+everything core — moments, diary, rituals, voice notes, shows, clipping, rewards at
+your earned tier — works without spending a cent.
+
 ---
 
 ## App name
 
-- **Primary (both stores):** `ebril`
-- **iOS subtitle (30 chars max):** `a small room for fans`
-- **Google Play short description (80 chars max):** `a small room for the people who live inside the songs.`
+- **Primary (both stores):** `copula`
+- **Full display:** `copula — ebril's world`
+- **iOS subtitle (30 chars max):** `ebril's world. come inside.`
+- **Google Play short description (80 chars max):** `ebril's world. a small room for the people who live inside the songs.`
 
 ## Bundle / package id
 
-- iOS: `com.ebril.rewards`
-- Android: `com.ebril.rewards`
+- iOS: `com.ebril.copula`
+- Android: `com.ebril.copula`
 
 Match these to whatever the team registered in Apple Developer + Play Console.
 
@@ -24,37 +29,46 @@ Match these to whatever the team registered in Apple Developer + Play Console.
 ## Long description (App Store + Play Store)
 
 ```
-a small room for the people who live inside the songs.
+copula is ebril's world.
 
-earn points every time you pledge on patreon. keep a dusk diary for the songs that
-hold you. claim listening rituals that drop into your night. spend points on things
-i made with you in mind — signed pieces, quiet phone calls, merch, early access to
-what comes next.
+a small room for the people who live inside the songs — journal the ones that hold
+you, make clips that carry them, hear the half-minute thoughts she never posts
+anywhere else, keep cassettes for the moments you were there.
 
-what's inside:
+the app is free. no paywall you can't see around.
 
-— dusk diary. write what a song made you feel. tag the track. keep it private or
-  share the page with me. one entry a day earns a small bonus.
-— tonight's ritual. every so often i'll set a moment — press play on a specific
-  song at a specific hour. claim the ritual and a little warmth lands in your
-  balance.
-— tiers. fan, superfan, vip. your pledge sets your tier; your tier unlocks perks.
-— rewards. the catalog grows. some pieces are for vips only, some open to
-  everyone. you can also take them with money if points aren't there yet.
-— find me. one tap to open spotify, apple music, youtube, merch, wherever else i
-  live.
+moments — short posts from ebril as they come. hold the ones that land.
 
-you sign in with patreon. that's the only account you need. if you'd rather not
-pledge monthly, you can still participate — there are point packs for top-ups.
+dusk diary — write what a song made you feel. tag the track. keep it private or
+share the page with her. a tiny bonus every day.
 
-thanks for being here. it means more than i can put in a paragraph.
+rituals — every so often she sets a moment. press play on this song at this hour.
+claim it and something warm lands in your balance.
+
+eras + directions — make a clip for a specific creative prompt (she calls them
+directions), tag the song, send it. the good ones get held on the in-app wall.
+the ones that carry the song past a view threshold earn a bigger thank-you.
+
+voice notes — half-minute audio only inside. tier-gated for patreon supporters.
+
+songs — every track with its own page: lyrics, a note from her, and the streaming
+links that open the native spotify / apple / youtube apps on your phone.
+
+shows — where she's playing next. scan the qr on the merch table and she'll know
+you were there. points + a cassette keep the night with you.
+
+rewards — the catalog grows. some are for vips only, some open to everyone. you
+can also take certain pieces with money when points aren't there yet.
+
+sign in with patreon. that's the only account you need.
+
 — ebril
 ```
 
 ## Keywords (App Store — 100-char comma-separated)
 
 ```
-ebril,music,patreon,fan,rewards,loyalty,diary,indie,folk,ambient,shoegaze,dusk,merch,concert,artist
+ebril,copula,music,fan,diary,indie,folk,ambient,shoegaze,dusk,clipping,community,patreon,merch,concert
 ```
 
 ## Categories

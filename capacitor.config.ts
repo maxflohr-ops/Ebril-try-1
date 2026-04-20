@@ -4,11 +4,11 @@ import type { CapacitorConfig } from "@capacitor/cli";
 // The Next.js server keeps handling API routes, OAuth, webhooks, crons, etc.
 // Flip `server.url` to your staging or prod domain before building.
 const config: CapacitorConfig = {
-  appId: "com.ebril.rewards",
-  appName: "ebril",
+  appId: "com.ebril.copula",
+  appName: "copula",
   webDir: "public",
   server: {
-    url: process.env.APP_BASE_URL || "https://rewards.ebril.com",
+    url: process.env.APP_BASE_URL || "https://copula.ebril.com",
     cleartext: false,
     androidScheme: "https",
   },
@@ -17,7 +17,7 @@ const config: CapacitorConfig = {
     contentInset: "always",
     backgroundColor: "#15100E",
     limitsNavigationsToAppBoundDomains: true,
-    scheme: "ebril",
+    scheme: "copula",
   },
   android: {
     backgroundColor: "#15100E",

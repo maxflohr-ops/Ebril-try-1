@@ -38,6 +38,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
         </div>
         <nav className="admin-nav" style={{ display: "flex", flexDirection: "column", gap: 4 }}>
           <Link href="/admin">dashboard</Link>
+          <Link href="/admin/posts">moments</Link>
           <Link href="/admin/songs">songs</Link>
           <Link href="/admin/eras">eras</Link>
           <Link href="/admin/directions">directions</Link>

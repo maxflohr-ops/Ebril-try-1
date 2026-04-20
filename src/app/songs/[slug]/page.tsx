@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
+import { getSession } from "@/lib/session";
+import { DropSubscribe } from "@/components/DropSubscribe";
 
 export const dynamic = "force-dynamic";
 
@@ -34,6 +36,13 @@ export default async function SongPage({
 }) {
   const song = await prisma.song.findUnique({ where: { slug: params.slug } });
   if (!song || !song.active) notFound();
+
+  const session = await getSession();
+  const subscribedToNext = session.userId
+    ? !!(await prisma.dropSubscription.findFirst({
+        where: { userId: session.userId, songId: null },
+      }))
+    : false;
 
   // Split lyrics on blank lines so verses breathe as typographic blocks.
   const verses = song.lyrics
@@ -108,6 +117,15 @@ export default async function SongPage({
             {song.youtubeUrl && <LinkPill href={song.youtubeUrl} label="youtube" />}
             {song.bandcampUrl && <LinkPill href={song.bandcampUrl} label="bandcamp" />}
           </div>
+          {session.userId && (
+            <div style={{ marginTop: 18 }}>
+              <DropSubscribe
+                songId={null}
+                label="next ebril release"
+                initialSubscribed={subscribedToNext}
+              />
+            </div>
+          )}
         </div>
       </header>
 

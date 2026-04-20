@@ -538,3 +538,46 @@ enum ClipStatus {
   viral
   rejected
 }
+
+model Post {
+  id         String   @id @default(uuid())
+  body       String
+  imageUrl   String?
+  audioUrl   String?
+  linkUrl    String?
+  linkLabel  String?
+  moodTag    String?
+  publishedAt DateTime @default(now())
+  pinned     Boolean  @default(false)
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  likes PostLike[]
+
+  @@index([active, pinned, publishedAt])
+}
+
+model PostLike {
+  id        String   @id @default(uuid())
+  userId    String
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, postId])
+  @@index([postId])
+}
+
+model DropSubscription {
+  id        String   @id @default(uuid())
+  userId    String
+  songId    String?
+  label     String?
+  notifiedAt DateTime?
+  createdAt DateTime @default(now())
+
+  @@unique([userId, songId])
+  @@index([userId])
+  @@index([songId])
+}

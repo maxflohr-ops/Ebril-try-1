@@ -18,10 +18,16 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "ebril — rewards",
-  description: "a small room for the people who live inside the songs.",
+  title: "copula — ebril's world",
+  description:
+    "a small room for the people who live inside the songs. free — come inside.",
   manifest: "/manifest.webmanifest",
-  applicationName: "ebril",
+  applicationName: "copula",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "copula",
+  },
 };
 
 export const viewport: Viewport = {

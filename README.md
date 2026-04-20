@@ -1,6 +1,10 @@
-# Ebril Rewards
+# copula — ebril's world
 
-Patreon-connected loyalty app for Ebril. See [`SPEC.md`](./SPEC.md) for the full product spec.
+Free fan app for ebril (Huda Al-Hamami). a small room for the people who live
+inside the songs — moments, dusk diary, listening rituals, clip directions,
+voice notes, lyric pages, tour check-ins, rewards.
+
+See [`SPEC.md`](./SPEC.md) for the original product spec.
 
 ## Stack
 
@@ -20,6 +24,9 @@ Patreon-connected loyalty app for Ebril. See [`SPEC.md`](./SPEC.md) for the full
 - [x] **M7** — Dusk diary + listening rituals (music-fan loop)
 - [x] **M8** — Spotify / YouTube / Shopify (click-out links + product grid)
 - [x] **M9** — Capacitor wrap for iOS + Android, store listing pack
+- [x] **M10** — Collection (cassettes), voice notes, tour + QR check-in, Stripe refunds, rate limit
+- [x] **M11** — Song catalog + lyrics, eras + directions + clips + moderation + wall + leaderboard
+- [x] **M12** — Copula launch pass: app rename, moments feed (Weverse-style posts + hearts), drop subscribe
 
 ## Publishing to the App Store + Google Play
 

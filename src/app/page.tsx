@@ -8,6 +8,7 @@ import { TierCard } from "@/components/TierCard";
 import { RitualCard } from "@/components/RitualCard";
 import { FindMeCard } from "@/components/FindMeCard";
 import { DirectionHero } from "@/components/DirectionHero";
+import { PostCard } from "@/components/PostCard";
 import { activeRitualForUser } from "@/lib/rituals";
 import { getSocialLinks, getShopifyStore } from "@/lib/externalLinks";
 
@@ -20,25 +21,43 @@ export default async function Home() {
   const user = await prisma.user.findUnique({ where: { id: session.userId } });
   if (!user) return <Landing />;
 
-  const [balance, progress, ritual, socialLinks, shopifyStore, featuredDirection] =
-    await Promise.all([
-      getBalance(user.id),
-      getTierProgress(user.id),
-      activeRitualForUser(user.id),
-      getSocialLinks(),
-      getShopifyStore(),
-      prisma.clippingBrief.findFirst({
-        where: { active: true, era: { active: true, isCurrent: true } },
-        orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
-        include: {
-          era: { select: { name: true, slug: true, accentColor: true, secondaryColor: true } },
-          song: { select: { title: true } },
-          _count: {
-            select: { clips: { where: { status: { in: ["featured", "viral"] } } } },
-          },
+  const [
+    balance,
+    progress,
+    ritual,
+    socialLinks,
+    shopifyStore,
+    featuredDirection,
+    latestPost,
+  ] = await Promise.all([
+    getBalance(user.id),
+    getTierProgress(user.id),
+    activeRitualForUser(user.id),
+    getSocialLinks(),
+    getShopifyStore(),
+    prisma.clippingBrief.findFirst({
+      where: { active: true, era: { active: true, isCurrent: true } },
+      orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
+      include: {
+        era: { select: { name: true, slug: true, accentColor: true, secondaryColor: true } },
+        song: { select: { title: true } },
+        _count: {
+          select: { clips: { where: { status: { in: ["featured", "viral"] } } } },
         },
-      }),
-    ]);
+      },
+    }),
+    prisma.post.findFirst({
+      where: { active: true },
+      orderBy: [{ pinned: "desc" }, { publishedAt: "desc" }],
+      include: { _count: { select: { likes: true } } },
+    }),
+  ]);
+
+  const likedLatestPost = latestPost
+    ? !!(await prisma.postLike.findUnique({
+        where: { userId_postId: { userId: user.id, postId: latestPost.id } },
+      }))
+    : false;
 
   return (
     <main
@@ -81,6 +100,36 @@ export default async function Home() {
           </div>
         </div>
       </header>
+
+      {latestPost && (
+        <div style={{ marginBottom: 22 }}>
+          <PostCard
+            id={latestPost.id}
+            body={latestPost.body}
+            imageUrl={latestPost.imageUrl}
+            audioUrl={latestPost.audioUrl}
+            linkUrl={latestPost.linkUrl}
+            linkLabel={latestPost.linkLabel}
+            moodTag={latestPost.moodTag}
+            publishedAt={latestPost.publishedAt.toISOString()}
+            pinned={latestPost.pinned}
+            likeCount={latestPost._count.likes}
+            liked={likedLatestPost}
+          />
+          <div style={{ textAlign: "right", marginTop: -6 }}>
+            <Link
+              href="/posts"
+              style={{
+                color: "var(--text-muted)",
+                fontSize: 13,
+                letterSpacing: "0.04em",
+              }}
+            >
+              all moments →
+            </Link>
+          </div>
+        </div>
+      )}
 
       <BalanceCard balance={balance} userKey={user.id} />
 
@@ -144,6 +193,7 @@ export default async function Home() {
           justifyContent: "center",
         }}
       >
+        <Link href="/posts" className="nav-chip">moments</Link>
         <Link href="/songs" className="nav-chip">songs</Link>
         <Link href="/eras" className="nav-chip">eras</Link>
         <Link href="/my-clips" className="nav-chip">your clips</Link>
@@ -210,23 +260,48 @@ function Landing() {
       }}
     >
       <div className="hero-wash" style={{ height: 560 }} />
-      <div className="eyebrow" style={{ marginBottom: 18 }}>ebril — rewards</div>
-      <h1 style={{ margin: "0 0 18px" }}>
+      <div className="eyebrow" style={{ marginBottom: 12, color: "var(--accent)" }}>
+        copula — ebril&rsquo;s world
+      </div>
+      <h1 style={{ margin: "0 0 14px", fontSize: 44 }}>
         a small room for the people who live inside the songs.
       </h1>
+      <div
+        style={{
+          fontSize: 13,
+          letterSpacing: "0.14em",
+          textTransform: "uppercase",
+          color: "var(--text-muted)",
+          marginBottom: 18,
+        }}
+      >
+        free · ios · android
+      </div>
       <p
         style={{
           color: "var(--text-muted)",
           margin: "0 auto 36px",
-          maxWidth: 380,
+          maxWidth: 420,
           fontSize: 15,
+          lineHeight: 1.6,
         }}
       >
-        earn points when you pledge, keep them warm over time, spend them on things i made with you in mind.
+        write what the songs do to you. make clips that carry the album. hear half-minute
+        thoughts before anyone else. earn points, keep cassettes, meet at shows.
       </p>
       <Link href="/api/auth/patreon" className="btn">
         come inside
       </Link>
+      <div
+        style={{
+          marginTop: 28,
+          color: "var(--text-muted)",
+          fontSize: 12,
+          letterSpacing: "0.08em",
+        }}
+      >
+        sign in with patreon. nothing is behind a paywall you can&rsquo;t see around.
+      </div>
     </main>
   );
 }
