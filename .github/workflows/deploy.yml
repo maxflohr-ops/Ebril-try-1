@@ -15,10 +15,6 @@ jobs:
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          secrets: |
-            AIRTABLE_PAT
-        env:
-          AIRTABLE_PAT: ${{ secrets.AIRTABLE_PAT }}
 
   deploy-pages:
     name: Deploy Pages (florra.club)
