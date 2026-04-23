@@ -89,6 +89,7 @@ enum TransactionReason {
   show_checkin
   gift_sent
   gift_received
+  minecraft_play
 }
 
 model Tier {
@@ -620,4 +621,27 @@ model Gift {
 
   @@index([fromUserId, createdAt])
   @@index([toUserId, createdAt])
+}
+
+model MinecraftAccount {
+  id         String    @id @default(uuid())
+  userId     String    @unique
+  mcUuid     String    @unique
+  mcUsername String
+  linkedAt   DateTime  @default(now())
+  lastSeenAt DateTime?
+
+  @@index([mcUuid])
+}
+
+model MinecraftLinkCode {
+  id         String    @id @default(uuid())
+  userId     String
+  code       String    @unique
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
 }

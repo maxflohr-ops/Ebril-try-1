@@ -4,6 +4,7 @@ import { getSession } from "@/lib/session";
 import { consecutiveChargeMonths, STREAK_REWARDS } from "@/lib/streaks";
 import { ProfileForm } from "./ProfileForm";
 import { PushToggle } from "@/components/PushToggle";
+import { MinecraftCard } from "@/components/MinecraftCard";
 
 export const dynamic = "force-dynamic";
 
@@ -36,7 +37,7 @@ export default async function ProfilePage() {
   });
   if (!user) redirect("/");
 
-  const [streak, earnedAgg, recentGifts] = await Promise.all([
+  const [streak, earnedAgg, recentGifts, mcAccount, activeLinkCode] = await Promise.all([
     consecutiveChargeMonths(user.id),
     prisma.pointTransaction.aggregate({
       _sum: { delta: true },
@@ -46,6 +47,15 @@ export default async function ProfilePage() {
       where: { toUserId: user.id },
       orderBy: { createdAt: "desc" },
       take: 3,
+    }),
+    prisma.minecraftAccount.findUnique({ where: { userId: user.id } }),
+    prisma.minecraftLinkCode.findFirst({
+      where: {
+        userId: user.id,
+        consumedAt: null,
+        expiresAt: { gt: new Date() },
+      },
+      orderBy: { createdAt: "desc" },
     }),
   ]);
   const giftSenderIds = Array.from(new Set(recentGifts.map((g) => g.fromUserId)));
@@ -146,6 +156,26 @@ export default async function ProfilePage() {
       </div>
 
       <PushToggle />
+
+      <MinecraftCard
+        initialAccount={
+          mcAccount
+            ? {
+                mcUsername: mcAccount.mcUsername,
+                linkedAt: mcAccount.linkedAt.toISOString(),
+                lastSeenAt: mcAccount.lastSeenAt?.toISOString() ?? null,
+              }
+            : null
+        }
+        initialCode={
+          activeLinkCode
+            ? {
+                code: activeLinkCode.code,
+                expiresAt: activeLinkCode.expiresAt.toISOString(),
+              }
+            : null
+        }
+      />
 
       {recentGifts.length > 0 && (
         <div
