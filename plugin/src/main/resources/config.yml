@@ -1,0 +1,58 @@
+# copula ↔ minecraft plugin config.
+#
+# The shared secret below MUST match MINECRAFT_SHARED_SECRET on the copula
+# backend. Generate once with `openssl rand -hex 32` and put the same value
+# in both places.
+
+copula:
+  # Where the copula backend lives. No trailing slash.
+  base-url: "https://copula.ebril.com"
+  # HMAC secret shared with the backend.
+  shared-secret: "CHANGE-ME-32-HEX-CHARS"
+
+# How often the plugin credits points for active playtime, and how much per
+# tick. Each tick is idempotent on the backend via refId
+# "mc:playtime:<mcuuid>:<YYYYMMDDHH>", so re-sending a tick never double
+# credits.
+playtime:
+  minutes-between-grants: 60
+  points-per-grant: 5
+  # Set false to disable playtime rewards entirely.
+  enabled: true
+  # Push a phone notification on each grant? Default off to avoid spam.
+  notify-player: false
+
+# When a fan signs in and their copula tier.sortOrder changes, run these
+# console commands. Use any permission system (LuckPerms, PermissionsEx,
+# vault-linked systems, etc). {player} and {group} are substituted.
+#
+# sortOrder mapping:
+#   0 → unranked (no active patreon pledge)
+#   1 → fan
+#   2 → superfan
+#   3 → vip
+#
+# Example (LuckPerms):
+on-tier-change:
+  unranked:
+    - "lp user {player} parent set default"
+  fan:
+    - "lp user {player} parent set copula-fan"
+  superfan:
+    - "lp user {player} parent set copula-superfan"
+  vip:
+    - "lp user {player} parent set copula-vip"
+
+# Collectible keys → commands to run once on first sync. Use these to
+# hand out cosmetics, permissions, or items when a cassette is earned.
+# The plugin tracks which collectibles it's already applied per player
+# in local plugin storage, so each command fires exactly once per player.
+on-collectible-earned:
+  welcome_in:
+    - "say {player} just arrived on the dusk server — welcome in."
+  held_clip:
+    - "lp user {player} permission set copula.cosmetic.held-title true"
+  tier_vip:
+    - "lp user {player} parent add copula-vip-area"
+  stranger_in_you:
+    - "give {player} minecraft:music_disc_far 1"
