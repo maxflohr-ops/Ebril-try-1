@@ -1,4 +1,4 @@
-name = "florra-intake-proxy"
+name = "florraintakeproxy"
 main = "worker.mjs"
 compatibility_date = "2024-09-23"
 
