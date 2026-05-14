@@ -56,3 +56,21 @@ on-collectible-earned:
     - "lp user {player} parent add copula-vip-area"
   stranger_in_you:
     - "give {player} minecraft:music_disc_far 1"
+
+# Season-pass rewards: when admin approves a fan's submission in the
+# copula mod queue, the plugin runs the matching commands here on the
+# fan's next login. Reward key MUST match the key set in copula admin.
+# Same one-shot mechanic as collectibles — each command fires exactly
+# once per player per reward.
+on-season-reward:
+  dusk_cape:
+    - "lp user {player} permission set copula.cosmetic.cape.dusk true"
+    - "tellraw {player} {\"text\":\"the dusk cape is yours.\",\"color\":\"gold\"}"
+  homestead_plot:
+    - "rg define homestead-{player} -w world"
+    - "rg addmember homestead-{player} {player} -w world"
+    - "tellraw {player} {\"text\":\"your plot is claimed. coords on the map.\",\"color\":\"gold\"}"
+  title_keeper:
+    - "lp user {player} meta set chat-prefix \"&6[keeper]&r \""
+  signed_disc:
+    - "give {player} minecraft:music_disc_otherside 1"

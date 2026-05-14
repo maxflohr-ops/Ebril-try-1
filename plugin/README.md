@@ -65,9 +65,12 @@ automatically.
 - `LoginListener` fires `/api/minecraft/me/:uuid` on join. On `404` it
   nudges the fan to link. On `200` it hands off to `TierSync`.
 - `TierSync` runs the configured console commands for the fan's
-  `tier.sortOrder` (0/1/2/3 → unranked/fan/superfan/vip) and fires
-  `on-collectible-earned.<key>` commands exactly once per player,
-  tracked in `applied-collectibles.yml` under the plugin's data folder.
+  `tier.sortOrder` (0/1/2/3 → unranked/fan/superfan/vip), fires
+  `on-collectible-earned.<key>` commands exactly once per player, and
+  fires `on-season-reward.<key>` commands once per approved season-pass
+  submission. Everything tracked in `applied-collectibles.yml` under
+  the plugin's data folder (season rewards stored with a `season:`
+  prefix so they can't collide with collectibles that share a key).
 - `PlaytimeTask` runs on the `playtime.minutes-between-grants` schedule
   and calls `/api/minecraft/grant` with
   `idempotencyKey=playtime:<uuid>:<yyyymmddhh>`. The backend dedupes on

@@ -40,7 +40,7 @@ export async function GET(
     data: { lastSeenAt: new Date() },
   });
 
-  const [user, balance, grants] = await Promise.all([
+  const [user, balance, grants, seasonGrants] = await Promise.all([
     prisma.user.findUnique({
       where: { id: account.userId },
       select: {
@@ -54,6 +54,12 @@ export async function GET(
     prisma.collectibleGrant.findMany({
       where: { userId: account.userId },
       include: { collectible: { select: { key: true, rarity: true } } },
+    }),
+    prisma.seasonPassGrant.findMany({
+      where: { userId: account.userId },
+      include: {
+        reward: { select: { key: true, kind: true, season: { select: { slug: true } } } },
+      },
     }),
   ]);
   if (!user) return NextResponse.json({ linked: false }, { status: 404 });
@@ -70,6 +76,12 @@ export async function GET(
     collectibles: grants.map((g) => ({
       key: g.collectible.key,
       rarity: g.collectible.rarity,
+      grantedAt: g.grantedAt,
+    })),
+    seasonRewards: seasonGrants.map((g) => ({
+      key: g.reward.key,
+      kind: g.reward.kind,
+      season: g.reward.season.slug,
       grantedAt: g.grantedAt,
     })),
     mcUsername: account.mcUsername,

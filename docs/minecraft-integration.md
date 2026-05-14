@@ -132,6 +132,10 @@ Success `200`:
     { "key": "welcome_in", "rarity": "common",  "grantedAt": "2026-04-06T…Z" },
     { "key": "held_clip",  "rarity": "rare",    "grantedAt": "2026-04-18T…Z" }
   ],
+  "seasonRewards": [
+    { "key": "dusk_cape",      "kind": "cosmetic", "season": "dusk-2026", "grantedAt": "2026-05-12T…Z" },
+    { "key": "homestead_plot", "kind": "plot",     "season": "dusk-2026", "grantedAt": "2026-05-14T…Z" }
+  ],
   "mcUsername": "hana_dusk"
 }
 ```
@@ -143,7 +147,15 @@ The plugin should translate these into in-game state:
   silently break you.
 - **`collectibles[].key`** → unlocks. `welcome_in` = spawn access,
   `held_clip` = a cosmetic title, `tier_vip` = the private build
-  region, etc. Map these in plugin config.
+  region, etc. Map these in plugin config under `on-collectible-earned`.
+- **`seasonRewards[].key`** → season-pass reward grants. Each row here
+  is the result of a fan submitting content to the copula mod queue
+  and an admin approving it. Map keys in plugin config under
+  `on-season-reward` to console commands (give cosmetics, claim plots,
+  set chat-prefix titles, hand out items). One-shot per player —
+  re-syncing never re-fires the commands. `kind` is one of `cosmetic`,
+  `plot`, `title`, `item`, `other` for UI / log filtering on the
+  plugin side; it's advisory.
 - **`balance`** → optional vanity display (`/balance` in chat).
 
 `404 {"linked": false}` if that UUID isn't paired to anyone.

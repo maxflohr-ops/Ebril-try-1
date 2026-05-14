@@ -27,10 +27,12 @@ model User {
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
 
-  pledges          Pledge[]
-  transactions     PointTransaction[]
-  redemptions      Redemption[]
-  minecraftAccount MinecraftAccount?
+  pledges               Pledge[]
+  transactions          PointTransaction[]
+  redemptions           Redemption[]
+  minecraftAccount      MinecraftAccount?
+  seasonPassSubmissions SeasonPassSubmission[]
+  seasonPassGrants      SeasonPassGrant[]
 
   @@index([currentTierId])
   @@index([referredById])
@@ -646,4 +648,103 @@ model MinecraftLinkCode {
 
   @@index([userId])
   @@index([expiresAt])
+}
+
+// A SeasonPass is a time-boxed bundle of in-game rewards (cosmetics,
+// plots of land, titles) that fans earn by submitting content for
+// manual review. Only one season is "active" at a time.
+model SeasonPass {
+  id        String   @id @default(uuid())
+  slug      String   @unique
+  name      String
+  tagline   String?
+  startsAt  DateTime
+  endsAt    DateTime
+  active    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  rewards SeasonPassReward[]
+
+  @@index([active])
+}
+
+// A reward inside a season. `key` matches the plugin's
+// on-season-reward.<key> config block, so adding a new reward in the
+// app is a no-op until the server admin adds the matching commands.
+model SeasonPassReward {
+  id               String   @id @default(uuid())
+  seasonPassId     String
+  season           SeasonPass @relation(fields: [seasonPassId], references: [id], onDelete: Cascade)
+  key              String
+  name             String
+  description      String
+  kind             SeasonRewardKind
+  imageUrl         String?
+  sortOrder        Int      @default(0)
+  minTierSortOrder Int      @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  submissions SeasonPassSubmission[]
+  grants      SeasonPassGrant[]
+
+  @@unique([seasonPassId, key])
+  @@index([seasonPassId])
+}
+
+enum SeasonRewardKind {
+  cosmetic
+  plot
+  title
+  item
+  other
+}
+
+// One submission per fan per reward at a time (latest wins). When a
+// rejected submission lands, the fan can submit again.
+model SeasonPassSubmission {
+  id           String   @id @default(uuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rewardId     String
+  reward       SeasonPassReward @relation(fields: [rewardId], references: [id], onDelete: Cascade)
+  contentType  SubmissionContentType
+  contentBody  String
+  status       SubmissionStatus @default(pending)
+  reviewerNote String?
+  decidedAt    DateTime?
+  decidedBy    String?
+  createdAt    DateTime @default(now())
+
+  @@index([rewardId, status])
+  @@index([userId, createdAt])
+  @@index([status, createdAt])
+}
+
+enum SubmissionContentType {
+  url
+  text
+}
+
+enum SubmissionStatus {
+  pending
+  approved
+  rejected
+}
+
+// Approval writes a Grant. The plugin reads grants on login and runs
+// the configured commands once per (userId, rewardId).
+model SeasonPassGrant {
+  id           String   @id @default(uuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rewardId     String
+  reward       SeasonPassReward @relation(fields: [rewardId], references: [id], onDelete: Cascade)
+  submissionId String   @unique
+  refId        String   @unique
+  grantedAt    DateTime @default(now())
+
+  @@unique([userId, rewardId])
+  @@index([userId])
 }

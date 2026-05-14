@@ -105,6 +105,13 @@ export function MinecraftCard({ initialAccount, initialCode }: Props) {
           anything the server grants you.
           {lastSeen && ` last seen ${lastSeen}.`}
         </div>
+        <a
+          href="/season-pass"
+          className="btn btn-ghost"
+          style={{ marginTop: 12, display: "inline-block", fontSize: 13, padding: "6px 14px" }}
+        >
+          season pass →
+        </a>
       </div>
     );
   }

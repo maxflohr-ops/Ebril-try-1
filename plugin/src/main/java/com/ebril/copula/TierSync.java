@@ -41,22 +41,35 @@ public final class TierSync {
       Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd);
     }
 
-    // collectibles — fire each config block exactly once per player
-    if (me.has("collectibles") && me.get("collectibles").isJsonArray()) {
-      JsonArray arr = me.getAsJsonArray("collectibles");
-      var store = plugin.collectibleStore();
-      var alreadyApplied = store.get(player.getUniqueId());
-      for (int i = 0; i < arr.size(); i++) {
-        JsonObject c = arr.get(i).getAsJsonObject();
-        String key = c.get("key").getAsString();
-        if (alreadyApplied.contains(key)) continue;
-        List<String> cmds = plugin.getConfig().getStringList("on-collectible-earned." + key);
-        for (String raw : cmds) {
-          String cmd = raw.replace("{player}", player.getName());
-          Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd);
-        }
-        store.add(player.getUniqueId(), key);
+    // collectibles — fire each config block exactly once per player.
+    // store key is the bare collectible key for backwards-compatibility.
+    applyOnce(plugin, player, me, "collectibles", "on-collectible-earned", k -> k);
+
+    // season-pass rewards — same one-shot mechanic, but namespaced in storage
+    // so a season reward and a collectible can share a key without colliding.
+    applyOnce(plugin, player, me, "seasonRewards", "on-season-reward",
+      k -> "season:" + k);
+  }
+
+  private static void applyOnce(CopulaPlugin plugin, Player player, JsonObject me,
+                                String jsonField, String configPath,
+                                java.util.function.Function<String, String> storeKeyFn) {
+    if (!me.has(jsonField) || !me.get(jsonField).isJsonArray()) return;
+    JsonArray arr = me.getAsJsonArray(jsonField);
+    var store = plugin.collectibleStore();
+    var alreadyApplied = store.get(player.getUniqueId());
+    for (int i = 0; i < arr.size(); i++) {
+      JsonObject c = arr.get(i).getAsJsonObject();
+      if (!c.has("key")) continue;
+      String key = c.get("key").getAsString();
+      String storeKey = storeKeyFn.apply(key);
+      if (alreadyApplied.contains(storeKey)) continue;
+      List<String> cmds = plugin.getConfig().getStringList(configPath + "." + key);
+      for (String raw : cmds) {
+        String cmd = raw.replace("{player}", player.getName());
+        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd);
       }
+      store.add(player.getUniqueId(), storeKey);
     }
   }
 }

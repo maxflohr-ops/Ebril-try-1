@@ -47,6 +47,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
           <Link href="/admin/notes">voice notes</Link>
           <Link href="/admin/tour">tour</Link>
           <Link href="/admin/minecraft">minecraft</Link>
+          <Link href="/admin/season-pass">season pass</Link>
           <Link href="/admin/campaigns">campaigns</Link>
           <Link href="/admin/rewards">rewards</Link>
           <Link href="/admin/point-packs">point packs</Link>
