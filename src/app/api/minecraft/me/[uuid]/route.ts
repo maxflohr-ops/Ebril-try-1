@@ -31,12 +31,7 @@ export async function GET(
   const mcUuid = normalizeMcUuid(params.uuid);
   if (!mcUuid) return NextResponse.json({ error: "invalid_uuid" }, { status: 400 });
 
-  const account = await prisma.minecraftAccount.findUnique({
-    where: { mcUuid },
-    include: {
-      // re-fetch the paired copula user's state inline
-    },
-  });
+  const account = await prisma.minecraftAccount.findUnique({ where: { mcUuid } });
   if (!account) return NextResponse.json({ linked: false }, { status: 404 });
 
   // Stamp last-seen so the admin can see who's active in-game.

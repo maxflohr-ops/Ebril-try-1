@@ -27,9 +27,10 @@ model User {
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
 
-  pledges      Pledge[]
-  transactions PointTransaction[]
-  redemptions  Redemption[]
+  pledges          Pledge[]
+  transactions     PointTransaction[]
+  redemptions      Redemption[]
+  minecraftAccount MinecraftAccount?
 
   @@index([currentTierId])
   @@index([referredById])
@@ -626,6 +627,7 @@ model Gift {
 model MinecraftAccount {
   id         String    @id @default(uuid())
   userId     String    @unique
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   mcUuid     String    @unique
   mcUsername String
   linkedAt   DateTime  @default(now())
