@@ -4,6 +4,8 @@ import { cookies } from "next/headers";
 export interface SessionData {
   userId?: string;
   oauthState?: string;
+  msOauthState?: string;
+  discordOauthState?: string;
   pendingReferralCode?: string;
   pendingCheckinId?: string;
   pendingCheckinToken?: string;

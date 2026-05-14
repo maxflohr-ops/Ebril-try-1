@@ -1,9 +1,13 @@
-# launch checklist — the gates between here and copula on the stores
+# launch checklist — the gates between here and copula on the web
 
 Every item below is either something a human has to do in the real world
 (open an account, click submit, sign a document) or something the code
 isn't responsible for. This is the list that gets you from a clean
-production build to an app live on the App Store + Google Play.
+production build to a live web app at `copula.ebril.com`.
+
+**Scope as of this revision:** web app only. Mobile / native (Capacitor)
+is parked — the scaffolds remain in `ios/` and `android/` for later, but
+nothing in this checklist depends on them.
 
 **Status as of the latest commit:**
 
@@ -14,6 +18,8 @@ production build to an app live on the App Store + Google Play.
 - ✅ Security audit findings fixed (SSRF, ledger races, webhook hardening).
 - ✅ Encryption at rest for Patreon tokens via AES-256-GCM.
 - ✅ Legal starter docs (`docs/privacy-policy.md`, `docs/terms.md`).
+- ✅ Minecraft integration (HTTP contract + Paper/Spigot plugin skeleton).
+- ✅ Season pass (admin-moderated content → in-game rewards).
 
 What still needs doing, in dependency order:
 
@@ -26,13 +32,20 @@ None of these are technical. All block launch.
 - [ ] Register the **Patreon OAuth client** under an owner account
       (Ebril personally, UMG, or a company entity). Note the client id +
       secret + webhook secret.
+- [ ] Register the **Microsoft Azure app** for Minecraft sign-in. Azure
+      Portal → App registrations → New registration → consumer accounts
+      ("Personal Microsoft accounts only"). Add redirect URI
+      `https://copula.ebril.com/api/auth/minecraft-ms/callback`.
+      Add scopes `XboxLive.signin offline_access`. Note client id +
+      secret.
+- [ ] Register the **Discord application** for Discord sign-in.
+      Discord Developer Portal → New Application → OAuth2. Add redirect
+      URI `https://copula.ebril.com/api/auth/discord/callback`. Note
+      client id + secret.
 - [ ] Decide who owns the **Stripe account** that processes point packs
       and cash-bought merch. Revenue flows there.
 - [ ] Register / transfer the **`copula.ebril.com`** domain (or whichever
       host you pick) to the same entity.
-- [ ] Create / assign an **Apple Developer team** (individual = $99/yr;
-      company = $99/yr + D-U-N-S verification, takes 1–3 weeks).
-- [ ] Create / assign a **Google Play Console** account ($25 one-time).
 - [ ] Name the **on-call rotation** (minimum: one person who handles a
       down-server at 3am).
 
@@ -106,56 +119,42 @@ done, the app feels like a demo to real fans.
 
 ---
 
-## 5. native apps · ~2 days the first time, ~1 hour per update after
+## 5. PWA polish · ~half a day
 
-- [ ] On a Mac: `npx cap add ios && npx cap add android`. Commit the
-      generated `ios/` and `android/` folders.
-- [ ] Drop a licensed 1024×1024 `icon.png` at `docs/store-assets/`.
-      Run `npx @capacitor/assets generate` (see `docs/publishing.md`).
-      Generates every icon + splash variant.
-- [ ] In Xcode: set team, bundle id `com.ebril.copula`, version. Enable
-      signing, archive, upload to App Store Connect.
-- [ ] In Android Studio: generate a signing keystore, **back up to
-      1Password immediately**, build a signed `.aab`, upload to Play
-      Console.
-- [ ] Decide the **Apple IAP question** before submitting. The app
-      currently uses Stripe for point packs — Apple's Guideline 3.1.1
-      will almost certainly reject that on iOS. Two paths:
-      - (a) Hide `/points/buy` inside the iOS Capacitor build via
-            a feature flag, keep it web-only on iOS; Android is fine.
-      - (b) Build a StoreKit-backed point-pack flow in parallel (~1
-            engineering week of extra work).
-      Document the choice before submission.
+The app is already a PWA (manifest + service worker). Nothing here is
+strictly required for launch, but each item makes the "add to home
+screen" experience feel native enough that fans don't ask for the App
+Store version.
 
----
+- [ ] Drop the licensed 1024×1024 `icon.png` at `public/`. The manifest
+      already references it.
+- [ ] Confirm `public/manifest.webmanifest` has the right `name`,
+      `short_name`, `theme_color`, and `background_color`.
+- [ ] iOS Safari fans: long-press the URL bar → "add to home screen"
+      lands a full-screen PWA. Document this in `/welcome` copy.
+- [ ] Android Chrome: the install prompt fires automatically — no
+      action needed.
+- [ ] If you want a one-tap install on desktop, the BeforeInstallPromptEvent
+      handler can surface a copula-branded install button. Not built;
+      ~1 hour if you want it.
 
-## 6. store listings · ~half a day
-
-- [ ] Use the copy in `docs/store-listing.md` verbatim or tweak once.
-- [ ] Fill in Apple's Privacy Nutrition Label; answers are pre-drafted
-      in the same doc.
-- [ ] Fill in Google Play's Data Safety form; same answers.
-- [ ] Shoot + upload **5 screenshots per device size** (iPhone 6.7,
-      Android phone). Follow the five-screenshot sequence in
-      `docs/icons-and-screenshots.md`.
-- [ ] Create the **1024×500 feature graphic** for Play.
-- [ ] Set the **reviewer test account** — create a Patreon sandbox
-      account, leave the creds in the App Store Connect reviewer notes
-      field. Copy is in `docs/store-listing.md`.
+> **Mobile / native shells were intentionally cut.** `ios/` and
+> `android/` directories remain in the repo for future use; nothing
+> in this checklist depends on them. If you ever do want a wrapped
+> native app, the path lives at `docs/publishing.md`.
 
 ---
 
-## 7. beta · 2 weeks of real-human time
+## 6. beta · 2 weeks of real-human time
 
-- [ ] TestFlight link out to 10–20 hand-picked real fans (not
-      developers, not the team — real 3am listeners).
-- [ ] Same group on Play internal test track.
+- [ ] Hand the URL out to 10–20 real fans (not developers, not the
+      team — real 3am listeners).
 - [ ] Watch `/admin/audit` + per-fan `/wrapped` pages at day 7.
       Measure: does anyone come back on day 3? on day 7? which three
       surfaces do they open most? what does the first support email
       actually say?
-- [ ] Fix whatever day-3 retention falls off on *before* submitting
-      to public review.
+- [ ] Fix whatever day-3 retention falls off on *before* opening
+      the gates wider.
 
 ---
 
@@ -189,10 +188,10 @@ done, the app feels like a demo to real fans.
 ## what blocks *right now*
 
 The single hardest gate is **Section 1 — ownership decisions**. Every
-other item on this list depends on having an owner-of-record for at
-least the Patreon client, the Stripe account, and the Apple + Play
-teams. An hour with the right humans in a room unblocks six weeks
-of downstream work.
+other item on this list depends on having an owner-of-record for the
+Patreon client, the Microsoft Azure app, the Discord application, and
+the production domain. An hour with the right humans in a room
+unblocks weeks of downstream work.
 
 If I could press one button from here, I'd press the "schedule that
 meeting" button. I can't, but that's the thing.

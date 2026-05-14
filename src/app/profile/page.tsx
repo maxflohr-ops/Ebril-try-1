@@ -5,6 +5,12 @@ import { consecutiveChargeMonths, STREAK_REWARDS } from "@/lib/streaks";
 import { ProfileForm } from "./ProfileForm";
 import { PushToggle } from "@/components/PushToggle";
 import { MinecraftCard } from "@/components/MinecraftCard";
+import { DiscordCard } from "@/components/DiscordCard";
+import { isConfigured as msIsConfigured } from "@/lib/minecraftMicrosoft";
+import {
+  isConfigured as discordIsConfigured,
+  avatarUrl as discordAvatarUrl,
+} from "@/lib/discord";
 
 export const dynamic = "force-dynamic";
 
@@ -17,7 +23,11 @@ function longhandDate(d: Date) {
   return `${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
 }
 
-export default async function ProfilePage() {
+export default async function ProfilePage({
+  searchParams,
+}: {
+  searchParams: { mc?: string; discord?: string };
+}) {
   const session = await getSession();
   if (!session.userId) redirect("/");
 
@@ -37,7 +47,7 @@ export default async function ProfilePage() {
   });
   if (!user) redirect("/");
 
-  const [streak, earnedAgg, recentGifts, mcAccount, activeLinkCode] = await Promise.all([
+  const [streak, earnedAgg, recentGifts, mcAccount, activeLinkCode, discordAccount] = await Promise.all([
     consecutiveChargeMonths(user.id),
     prisma.pointTransaction.aggregate({
       _sum: { delta: true },
@@ -57,6 +67,7 @@ export default async function ProfilePage() {
       },
       orderBy: { createdAt: "desc" },
     }),
+    prisma.discordAccount.findUnique({ where: { userId: user.id } }),
   ]);
   const giftSenderIds = Array.from(new Set(recentGifts.map((g) => g.fromUserId)));
   const giftSenders = giftSenderIds.length
@@ -175,6 +186,23 @@ export default async function ProfilePage() {
               }
             : null
         }
+        microsoftAvailable={msIsConfigured()}
+        flashStatus={searchParams.mc ?? null}
+      />
+
+      <DiscordCard
+        initialAccount={
+          discordAccount
+            ? {
+                username: discordAccount.username,
+                globalName: discordAccount.globalName,
+                avatarUrl: discordAvatarUrl(discordAccount.discordUserId, discordAccount.avatarHash),
+                linkedAt: discordAccount.linkedAt.toISOString(),
+              }
+            : null
+        }
+        available={discordIsConfigured()}
+        flashStatus={searchParams.discord ?? null}
       />
 
       {recentGifts.length > 0 && (

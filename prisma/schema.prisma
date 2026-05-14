@@ -31,6 +31,7 @@ model User {
   transactions          PointTransaction[]
   redemptions           Redemption[]
   minecraftAccount      MinecraftAccount?
+  discordAccount        DiscordAccount?
   seasonPassSubmissions SeasonPassSubmission[]
   seasonPassGrants      SeasonPassGrant[]
 
@@ -648,6 +649,25 @@ model MinecraftLinkCode {
 
   @@index([userId])
   @@index([expiresAt])
+}
+
+// Fan's Discord identity. One Discord account per copula user and vice
+// versa. We only keep the discriminator-free username + global avatar
+// hash; refresh tokens stored encrypted at rest like Patreon's.
+model DiscordAccount {
+  id              String    @id @default(uuid())
+  userId          String    @unique
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  discordUserId   String    @unique
+  username        String
+  globalName      String?
+  avatarHash      String?
+  accessToken     String?
+  refreshToken    String?
+  tokenExpires    DateTime?
+  linkedAt        DateTime  @default(now())
+
+  @@index([discordUserId])
 }
 
 // A SeasonPass is a time-boxed bundle of in-game rewards (cosmetics,

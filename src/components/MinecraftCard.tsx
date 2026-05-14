@@ -12,14 +12,32 @@ interface Props {
     code: string;
     expiresAt: string;
   } | null;
+  microsoftAvailable: boolean;
+  flashStatus: string | null;
 }
 
-export function MinecraftCard({ initialAccount, initialCode }: Props) {
+const FLASH_MESSAGES: Record<string, { ok: boolean; text: string }> = {
+  linked:         { ok: true,  text: "linked. log into the server and your tier + cassettes land in-game." },
+  denied:         { ok: false, text: "microsoft sign-in cancelled." },
+  invalid_state:  { ok: false, text: "session expired — try again." },
+  no_xbox:        { ok: false, text: "no xbox account on that microsoft profile. set one up at xbox.com first." },
+  child_account:  { ok: false, text: "this microsoft account needs to be added to a family group before xbox live works." },
+  region_banned:  { ok: false, text: "xbox live isn't available in this region." },
+  xbox_unavailable: { ok: false, text: "couldn't reach xbox live. try again in a minute." },
+  no_java:        { ok: false, text: "this microsoft account doesn't own minecraft java. did you mean a different account?" },
+  uuid_taken:     { ok: false, text: "that minecraft account is already linked to a different copula user." },
+  bad_uuid:       { ok: false, text: "couldn't parse the minecraft uuid." },
+  error:          { ok: false, text: "couldn't finish linking. try again." },
+};
+
+export function MinecraftCard({ initialAccount, initialCode, microsoftAvailable, flashStatus }: Props) {
   const [account, setAccount] = useState(initialAccount);
   const [code, setCode] = useState(initialCode);
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const flash = flashStatus ? FLASH_MESSAGES[flashStatus] : null;
 
   async function startLink() {
     setBusy(true);
@@ -182,10 +200,44 @@ export function MinecraftCard({ initialAccount, initialCode }: Props) {
           </div>
         </div>
       ) : (
-        <div style={{ marginTop: 14 }}>
-          <button className="btn" onClick={startLink} disabled={busy}>
-            {busy ? "…" : "link my minecraft account"}
+        <div style={{ marginTop: 14, display: "grid", gap: 10 }}>
+          {microsoftAvailable && (
+            <>
+              <a href="/api/auth/minecraft-ms" className="btn" style={{ textAlign: "center" }}>
+                sign in with microsoft
+              </a>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr auto 1fr",
+                  gap: 10,
+                  alignItems: "center",
+                  color: "var(--text-muted)",
+                  fontSize: 11,
+                  letterSpacing: "0.18em",
+                  textTransform: "uppercase",
+                }}
+              >
+                <span style={{ height: 1, background: "var(--border)" }} />
+                <span>or</span>
+                <span style={{ height: 1, background: "var(--border)" }} />
+              </div>
+            </>
+          )}
+          <button className="btn btn-ghost" onClick={startLink} disabled={busy}>
+            {busy ? "…" : microsoftAvailable ? "use an in-game pairing code" : "link my minecraft account"}
           </button>
+        </div>
+      )}
+      {flash && (
+        <div
+          style={{
+            color: flash.ok ? "var(--success)" : "var(--danger)",
+            fontSize: 13,
+            marginTop: 10,
+          }}
+        >
+          {flash.text}
         </div>
       )}
       {error && <div style={{ color: "var(--danger)", fontSize: 13, marginTop: 10 }}>{error}</div>}
