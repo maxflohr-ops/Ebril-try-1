@@ -11,6 +11,7 @@ import {
   isConfigured as discordIsConfigured,
   avatarUrl as discordAvatarUrl,
 } from "@/lib/discord";
+import { isBotConfigured as discordBotConfigured } from "@/lib/discordBot";
 
 export const dynamic = "force-dynamic";
 
@@ -202,6 +203,7 @@ export default async function ProfilePage({
             : null
         }
         available={discordIsConfigured()}
+        botActive={discordBotConfigured()}
         flashStatus={searchParams.discord ?? null}
       />
 

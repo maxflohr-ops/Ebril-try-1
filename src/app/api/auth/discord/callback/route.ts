@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db";
 import { logAudit } from "@/lib/audit";
 import { encryptMaybe } from "@/lib/crypto";
 import { exchangeCode, fetchIdentity } from "@/lib/discord";
+import { syncTierRoleSafe } from "@/lib/discordBot";
 
 export const runtime = "nodejs";
 
@@ -77,6 +78,10 @@ export async function GET(req: NextRequest) {
       discordUserId: identity.id,
       username: identity.username,
     });
+
+    // Apply their current tier role right away so the server reflects
+    // their standing the moment they link. Best-effort.
+    await syncTierRoleSafe(session.userId);
 
     return back(req, { discord: "linked" });
   } catch (err) {

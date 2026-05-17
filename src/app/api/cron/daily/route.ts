@@ -9,6 +9,7 @@ import {
   STREAK_REWARDS,
   consecutiveChargeMonths,
 } from "@/lib/streaks";
+import { isBotConfigured, syncTierRole } from "@/lib/discordBot";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -23,7 +24,12 @@ async function run(req: NextRequest) {
   const todayDD = String(now.getUTCDate()).padStart(2, "0");
   const yyyy = now.getUTCFullYear();
 
-  const summary = { birthdays: 0, streaks: 0, expiryWarnings: 0 };
+  const summary = {
+    birthdays: 0,
+    streaks: 0,
+    expiryWarnings: 0,
+    discordRolesReconciled: 0,
+  };
 
   // Birthdays
   const birthdayUsers = await prisma.user.findMany({
@@ -147,6 +153,23 @@ async function run(req: NextRequest) {
       },
     });
     summary.expiryWarnings++;
+  }
+
+  // Discord role drift correction. syncTierRole is idempotent — it reads
+  // the member's current roles and only issues calls for deltas — so a
+  // daily full sweep is a near-no-op in steady state and self-heals
+  // manual edits, remapped role ids, or the bot being added after fans
+  // had already linked.
+  if (isBotConfigured()) {
+    const linked = await prisma.discordAccount.findMany({
+      select: { userId: true },
+    });
+    for (const { userId } of linked) {
+      const res = await syncTierRole(userId);
+      if (res.ok && ((res.added?.length ?? 0) || (res.removed?.length ?? 0))) {
+        summary.discordRolesReconciled++;
+      }
+    }
   }
 
   return NextResponse.json({ ok: true, ...summary });

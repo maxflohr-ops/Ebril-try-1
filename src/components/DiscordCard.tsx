@@ -11,6 +11,7 @@ interface Props {
     linkedAt: string;
   } | null;
   available: boolean;
+  botActive: boolean;
   flashStatus: string | null;
 }
 
@@ -22,7 +23,7 @@ const FLASH_MESSAGES: Record<string, { ok: boolean; text: string }> = {
   error: { ok: false, text: "couldn't finish linking. try again." },
 };
 
-export function DiscordCard({ initialAccount, available, flashStatus }: Props) {
+export function DiscordCard({ initialAccount, available, botActive, flashStatus }: Props) {
   const router = useRouter();
   const [account, setAccount] = useState(initialAccount);
   const [busy, setBusy] = useState(false);
@@ -99,6 +100,12 @@ export function DiscordCard({ initialAccount, available, flashStatus }: Props) {
             unlink
           </button>
         </div>
+        {botActive && (
+          <div style={{ color: "var(--text-muted)", fontSize: 13, marginTop: 8 }}>
+            your tier role on ebril&rsquo;s server stays in sync automatically —
+            it follows your pledge.
+          </div>
+        )}
         {flash && (
           <div
             style={{
@@ -118,9 +125,10 @@ export function DiscordCard({ initialAccount, available, flashStatus }: Props) {
     <div className="surface" style={{ padding: 20, marginBottom: 16 }}>
       <div className="eyebrow">discord</div>
       <p style={{ color: "var(--text-muted)", fontSize: 14, marginTop: 10, lineHeight: 1.6 }}>
-        link your discord so ebril&rsquo;s server can find you. tier roles + show
-        announcements will sync through your discord identity when the
-        bot lands.
+        link your discord so ebril&rsquo;s server can find you.
+        {botActive
+          ? " your tier role syncs automatically — it follows your pledge."
+          : " tier roles sync through your discord identity once the server bot is live."}
       </p>
       <div style={{ marginTop: 14 }}>
         <a href="/api/auth/discord" className="btn" style={{ background: "#5865F2" }}>

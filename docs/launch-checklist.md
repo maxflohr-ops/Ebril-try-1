@@ -42,6 +42,14 @@ None of these are technical. All block launch.
       Discord Developer Portal → New Application → OAuth2. Add redirect
       URI `https://copula.ebril.com/api/auth/discord/callback`. Note
       client id + secret.
+- [ ] (Optional, for tier-role sync) On the same Discord application,
+      add a **Bot**, copy its token, invite it to Ebril's server with
+      the **Manage Roles** permission, and drag it *above* the tier
+      roles in Server Settings → Roles. Copy the guild id + the four
+      tier role ids (Discord → Developer Mode → right-click → Copy ID)
+      into `DISCORD_BOT_TOKEN`, `DISCORD_GUILD_ID`, and
+      `DISCORD_ROLE_UNRANKED/_FAN/_SUPERFAN/_VIP`. Unset = silent
+      no-op; the OAuth link still works without it.
 - [ ] Decide who owns the **Stripe account** that processes point packs
       and cash-bought merch. Revenue flows there.
 - [ ] Register / transfer the **`copula.ebril.com`** domain (or whichever

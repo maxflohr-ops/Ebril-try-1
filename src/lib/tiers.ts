@@ -1,5 +1,6 @@
 import { Tier } from "@prisma/client";
 import { prisma } from "./db";
+import { syncTierRoleSafe } from "./discordBot";
 
 export interface TierProgress {
   current: Tier | null;
@@ -41,10 +42,23 @@ export async function getTierProgress(userId: string): Promise<TierProgress> {
 }
 
 export async function recalcUserTier(userId: string): Promise<Tier | null> {
-  const { current } = await getTierProgress(userId);
-  await prisma.user.update({
+  const before = await prisma.user.findUnique({
     where: { id: userId },
-    data: { currentTierId: current?.id ?? null },
+    select: { currentTierId: true },
   });
+  const { current } = await getTierProgress(userId);
+  const newTierId = current?.id ?? null;
+
+  if ((before?.currentTierId ?? null) !== newTierId) {
+    await prisma.user.update({
+      where: { id: userId },
+      data: { currentTierId: newTierId },
+    });
+    // Tier actually moved → reconcile the fan's Discord role. Best-effort;
+    // a Discord outage must never break a tier recalculation. No-op when
+    // the bot isn't configured or the fan hasn't linked Discord.
+    await syncTierRoleSafe(userId);
+  }
+
   return current;
 }
