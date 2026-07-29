@@ -1,0 +1,29 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# The build pass catches TS errors that `next dev`'s laxer typing hides —
+# the ones that were burning us in production the first time we tried to
+# ship. Keep this green before merging anything.
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npx prisma generate
+      - run: npm run build
+        env:
+          # Placeholder values that let the build succeed without real
+          # infrastructure. Nothing here needs to match prod.
+          DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+          SESSION_SECRET: ci-session-secret-at-least-thirty-two-chars
+          APP_BASE_URL: https://copula.example.com

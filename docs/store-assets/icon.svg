@@ -1,0 +1,49 @@
+<!--
+  Ebril app icon — source SVG. Export to PNG at the sizes documented in
+  docs/icons-and-screenshots.md. Respects the brand: warm-black base,
+  dusk-plum to dawn-peach arc, a single crescent moon silhouette, never
+  neon, never glossy.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#15100E"/>
+      <stop offset="45%" stop-color="#2A1A1F"/>
+      <stop offset="80%" stop-color="#6B4A5E"/>
+      <stop offset="100%" stop-color="#D89B7A"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="30%" cy="28%" r="55%">
+      <stop offset="0%" stop-color="#F4ECE2" stop-opacity="0.25"/>
+      <stop offset="60%" stop-color="#F4ECE2" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="noise">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch"/>
+      <feColorMatrix values="0 0 0 0 1   0 0 0 0 0.92   0 0 0 0 0.82   0 0 0 0.35 0"/>
+    </filter>
+  </defs>
+
+  <!-- warm-black base, never #000 -->
+  <rect width="1024" height="1024" rx="220" fill="#15100E"/>
+
+  <!-- dusk arc -->
+  <rect width="1024" height="1024" rx="220" fill="url(#sky)" opacity="0.75"/>
+
+  <!-- soft upper-left lamplight -->
+  <rect width="1024" height="1024" rx="220" fill="url(#glow)"/>
+
+  <!-- grain overlay -->
+  <rect width="1024" height="1024" rx="220" filter="url(#noise)" opacity="0.3" style="mix-blend-mode: overlay;"/>
+
+  <!-- crescent moon, slightly tilted — a single, steady presence -->
+  <g transform="translate(512 520) rotate(-18)">
+    <circle cx="0" cy="0" r="180" fill="#F4ECE2" opacity="0.92"/>
+    <circle cx="62" cy="-24" r="180" fill="#15100E"/>
+  </g>
+
+  <!-- wordmark: lowercase "ebril" in a paper-feeling weight -->
+  <text x="512" y="860" text-anchor="middle"
+        font-family="Fraunces, 'Cormorant Garamond', Georgia, serif"
+        font-size="128" font-weight="500" fill="#F4ECE2" letter-spacing="-4">
+    ebril
+  </text>
+</svg>

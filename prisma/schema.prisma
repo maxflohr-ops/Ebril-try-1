@@ -1,0 +1,770 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                  String   @id @default(uuid())
+  patreonUserId       String   @unique
+  email               String?
+  displayName         String?
+  avatarUrl           String?
+  dob                 DateTime?
+  patreonAccessToken  String?
+  patreonRefreshToken String?
+  patreonTokenExpires DateTime?
+  currentTierId       String?
+  currentTier         Tier?    @relation(fields: [currentTierId], references: [id])
+  referralCode        String   @unique @default(cuid())
+  referredById        String?
+  referredBy          User?    @relation("Referrals", fields: [referredById], references: [id])
+  referrals           User[]   @relation("Referrals")
+  onboardedAt         DateTime?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  pledges               Pledge[]
+  transactions          PointTransaction[]
+  redemptions           Redemption[]
+  minecraftAccount      MinecraftAccount?
+  discordAccount        DiscordAccount?
+  seasonPassSubmissions SeasonPassSubmission[]
+  seasonPassGrants      SeasonPassGrant[]
+
+  @@index([currentTierId])
+  @@index([referredById])
+}
+
+model Pledge {
+  id               String       @id @default(uuid())
+  userId           String
+  user             User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  patreonPledgeId  String       @unique
+  amountCents      Int
+  currency         String       @default("USD")
+  status           PledgeStatus
+  startedAt        DateTime
+  lastChargedAt    DateTime?
+  updatedAt        DateTime     @updatedAt
+
+  @@index([userId])
+}
+
+enum PledgeStatus {
+  active
+  paused
+  declined
+  cancelled
+}
+
+model PointTransaction {
+  id        String            @id @default(uuid())
+  userId    String
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  delta     Int
+  reason    TransactionReason
+  refId     String?
+  expiresAt DateTime?
+  createdAt DateTime          @default(now())
+
+  @@unique([userId, refId])
+  @@index([userId])
+  @@index([userId, expiresAt])
+}
+
+enum TransactionReason {
+  pledge_charge
+  campaign_bonus
+  birthday
+  referral
+  streak
+  manual_adjust
+  redemption
+  expiry
+  signup_bonus
+  stripe_top_up
+  diary_entry
+  ritual_claim
+  clip_approved
+  show_checkin
+  gift_sent
+  gift_received
+  minecraft_play
+}
+
+model Tier {
+  id                    String @id @default(uuid())
+  name                  String @unique
+  sortOrder             Int    @unique
+  thresholdCentsPerMonth Int
+  multiplier            Float  @default(1.0)
+  perks                 Json   @default("[]")
+
+  users      User[]
+  rewards    Reward[]
+  voiceNotes VoiceNote[] @relation("VoiceNoteTier")
+}
+
+model Campaign {
+  id          String   @id @default(uuid())
+  name        String
+  multiplier  Float    @default(1.0)
+  flatBonus   Int?
+  startsAt    DateTime
+  endsAt      DateTime
+  tierFilter  Json?
+  createdAt   DateTime @default(now())
+
+  @@index([startsAt, endsAt])
+}
+
+model Reward {
+  id             String     @id @default(uuid())
+  name           String
+  description    String
+  imageUrl       String?
+  costPoints     Int
+  cashPriceCents Int?
+  stock          Int?
+  tierRequiredId String?
+  tierRequired   Tier?      @relation(fields: [tierRequiredId], references: [id])
+  type           RewardType
+  active         Boolean    @default(true)
+  createdAt      DateTime   @default(now())
+
+  redemptions Redemption[]
+}
+
+model PointPack {
+  id          String   @id @default(uuid())
+  name        String
+  points      Int
+  priceCents  Int
+  currency    String   @default("USD")
+  active      Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  @@index([active, sortOrder])
+}
+
+model StripeCheckout {
+  id              String   @id @default(uuid())
+  userId          String
+  sessionId       String   @unique
+  kind            String
+  targetId        String?
+  amountCents     Int
+  pointsDelta     Int?
+  status          String   @default("pending")
+  fulfilledAt     DateTime?
+  createdAt       DateTime @default(now())
+
+  @@index([userId])
+  @@index([status])
+}
+
+enum RewardType {
+  merch
+  signed
+  call_1on1
+  content_unlock
+  discount_code
+}
+
+model Redemption {
+  id               String           @id @default(uuid())
+  userId           String
+  user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rewardId         String
+  reward           Reward           @relation(fields: [rewardId], references: [id])
+  costPoints       Int
+  status           RedemptionStatus @default(pending)
+  shippingAddress  Json?
+  fulfillmentNotes String?
+  stripeSessionId  String?
+  stripeRefundId   String?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@index([stripeSessionId])
+}
+
+enum RedemptionStatus {
+  pending
+  approved
+  shipped
+  delivered
+  cancelled
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  actorId   String
+  action    String
+  targetId  String?
+  payload   Json?
+  createdAt DateTime @default(now())
+
+  @@index([actorId])
+  @@index([createdAt])
+}
+
+model WebhookEvent {
+  id         String   @id @default(uuid())
+  source     String
+  externalId String   @unique
+  payload    Json
+  receivedAt DateTime @default(now())
+}
+
+model PushSubscription {
+  id        String   @id @default(uuid())
+  userId    String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model AnalyticsEvent {
+  id        String   @id @default(uuid())
+  userId    String?
+  name      String
+  payload   Json?
+  createdAt DateTime @default(now())
+
+  @@index([name, createdAt])
+  @@index([userId, createdAt])
+}
+
+model DiaryEntry {
+  id              String    @id @default(uuid())
+  userId          String
+  text            String
+  mood            DiaryMood
+  trackTitle      String?
+  trackUrl        String?
+  sharedWithEbril Boolean   @default(false)
+  createdAt       DateTime  @default(now())
+
+  @@index([userId, createdAt])
+  @@index([sharedWithEbril, createdAt])
+}
+
+enum DiaryMood {
+  dusk
+  dawn
+  aching
+  open
+  alone
+  together
+  threeam
+  commute
+}
+
+model Ritual {
+  id            String    @id @default(uuid())
+  title         String
+  body          String
+  trackTitle    String?
+  trackUrl      String?
+  artworkUrl    String?
+  startsAt      DateTime
+  endsAt        DateTime
+  pointsReward  Int       @default(25)
+  createdAt     DateTime  @default(now())
+
+  claims RitualClaim[]
+
+  @@index([startsAt, endsAt])
+}
+
+model RitualClaim {
+  id        String   @id @default(uuid())
+  userId    String
+  ritualId  String
+  ritual    Ritual   @relation(fields: [ritualId], references: [id], onDelete: Cascade)
+  reflection String?
+  claimedAt DateTime @default(now())
+
+  @@unique([userId, ritualId])
+  @@index([ritualId])
+}
+
+model ExternalLink {
+  id         String     @id @default(uuid())
+  kind       LinkKind
+  label      String
+  url        String
+  extra      Json?
+  sortOrder  Int        @default(0)
+  active     Boolean    @default(true)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  @@index([kind, active])
+}
+
+enum LinkKind {
+  spotify_artist
+  spotify_featured
+  youtube_channel
+  youtube_featured
+  apple_music
+  shopify_store
+  bandcamp
+  soundcloud
+  instagram
+  tiktok
+  discord
+  website
+}
+
+model Collectible {
+  id          String  @id @default(uuid())
+  key         String  @unique
+  name        String
+  flavor      String
+  tapeColor   String  @default("#D89B7A")
+  labelColor  String  @default("#F4ECE2")
+  rarity      CollectibleRarity @default(common)
+  sortOrder   Int     @default(0)
+  active      Boolean @default(true)
+  createdAt   DateTime @default(now())
+
+  grants CollectibleGrant[]
+}
+
+enum CollectibleRarity {
+  common
+  rare
+  vip
+  ephemeral
+}
+
+model CollectibleGrant {
+  id            String      @id @default(uuid())
+  userId        String
+  collectibleId String
+  collectible   Collectible @relation(fields: [collectibleId], references: [id], onDelete: Cascade)
+  reason        String?
+  grantedAt     DateTime    @default(now())
+
+  @@unique([userId, collectibleId])
+  @@index([userId])
+  @@index([collectibleId])
+}
+
+model VoiceNote {
+  id             String   @id @default(uuid())
+  title          String
+  caption        String
+  audioUrl       String
+  durationSec    Int
+  tierRequiredId String?
+  tierRequired   Tier?    @relation("VoiceNoteTier", fields: [tierRequiredId], references: [id])
+  publishedAt    DateTime @default(now())
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+
+  listens VoiceNoteListen[]
+
+  @@index([active, publishedAt])
+}
+
+model VoiceNoteListen {
+  id              String    @id @default(uuid())
+  userId          String
+  voiceNoteId     String
+  voiceNote       VoiceNote @relation(fields: [voiceNoteId], references: [id], onDelete: Cascade)
+  secondsListened Int       @default(0)
+  completedAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([userId, voiceNoteId])
+  @@index([voiceNoteId])
+}
+
+model TourDate {
+  id            String   @id @default(uuid())
+  city          String
+  venue         String
+  country       String   @default("CA")
+  startsAt      DateTime
+  doorsAt       DateTime?
+  ticketUrl     String?
+  noteFromEbril String?
+  qrSecret      String   @default(cuid())
+  pointsReward  Int      @default(100)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  checkins TourCheckin[]
+
+  @@index([startsAt])
+}
+
+model TourCheckin {
+  id         String   @id @default(uuid())
+  userId     String
+  tourDateId String
+  tourDate   TourDate @relation(fields: [tourDateId], references: [id], onDelete: Cascade)
+  message    String?
+  checkedAt  DateTime @default(now())
+
+  @@unique([userId, tourDateId])
+  @@index([tourDateId])
+}
+
+model Song {
+  id              String   @id @default(uuid())
+  slug            String   @unique
+  title           String
+  album           String?
+  lyrics          String
+  noteFromEbril   String?
+  artworkUrl      String?
+  durationSec     Int?
+  releaseDate     DateTime?
+  spotifyUrl      String?
+  appleMusicUrl   String?
+  youtubeUrl      String?
+  bandcampUrl     String?
+  sortOrder       Int      @default(0)
+  active          Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  directions ClippingBrief[]
+
+  @@index([active, sortOrder])
+}
+
+model Era {
+  id            String   @id @default(uuid())
+  slug          String   @unique
+  name          String
+  tagline       String?
+  description   String?
+  accentColor   String   @default("#D89B7A")
+  secondaryColor String  @default("#6B4A5E")
+  artworkUrl    String?
+  startsAt      DateTime?
+  endsAt        DateTime?
+  isCurrent     Boolean  @default(false)
+  sortOrder     Int      @default(0)
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  directions ClippingBrief[]
+
+  @@index([active, isCurrent, sortOrder])
+}
+
+model ClippingBrief {
+  id                      String   @id @default(uuid())
+  eraId                   String
+  era                     Era      @relation(fields: [eraId], references: [id], onDelete: Cascade)
+  songId                  String?
+  song                    Song?    @relation(fields: [songId], references: [id])
+  slug                    String
+  title                   String
+  direction               String
+  exampleUrl              String?
+  coverUrl                String?
+  platformHint            String?
+  hashtagHint             String?
+  tiktokSoundUrl          String?
+  captionTemplate         String?
+  inspirationFeedUrl      String?
+  inspirationFeedSyncedAt DateTime?
+  pointsApproved          Int      @default(100)
+  pointsFeatured          Int      @default(500)
+  pointsViral             Int      @default(2500)
+  viralThreshold          Int?
+  featuredCollectibleKey  String?
+  active                  Boolean  @default(true)
+  sortOrder               Int      @default(0)
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  clips       Clip[]
+  inspiration InspirationImage[]
+
+  @@unique([eraId, slug])
+  @@index([active, sortOrder])
+  @@index([eraId])
+}
+
+model InspirationImage {
+  id          String   @id @default(uuid())
+  briefId     String
+  brief       ClippingBrief @relation(fields: [briefId], references: [id], onDelete: Cascade)
+  url         String
+  pinUrl      String?
+  caption     String?
+  attribution String?
+  source      String   @default("pinterest")
+  externalId  String?
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  @@unique([briefId, externalId])
+  @@index([briefId, sortOrder])
+}
+
+model Clip {
+  id                String     @id @default(uuid())
+  userId            String
+  briefId           String
+  brief             ClippingBrief @relation(fields: [briefId], references: [id], onDelete: Cascade)
+  platform          ClipPlatform
+  url               String
+  caption           String?
+  status            ClipStatus @default(pending)
+  viewCount         Int        @default(0)
+  viewCountUpdatedAt DateTime?
+  pointsAwarded     Int        @default(0)
+  rejectedReason    String?
+  adminNotes        String?
+  reviewedById      String?
+  reviewedAt        DateTime?
+  featuredAt        DateTime?
+  viralAt           DateTime?
+  urlStatus         String?
+  urlStatusCode     Int?
+  urlCheckedAt      DateTime?
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+
+  @@index([userId, createdAt])
+  @@index([briefId, status])
+  @@index([status, createdAt])
+}
+
+enum ClipPlatform {
+  tiktok
+  instagram_reel
+  youtube_short
+  youtube
+  twitter
+  bluesky
+  other
+}
+
+enum ClipStatus {
+  pending
+  approved
+  featured
+  viral
+  rejected
+}
+
+model Post {
+  id         String   @id @default(uuid())
+  body       String
+  imageUrl   String?
+  audioUrl   String?
+  linkUrl    String?
+  linkLabel  String?
+  moodTag    String?
+  publishedAt DateTime @default(now())
+  pinned     Boolean  @default(false)
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  likes PostLike[]
+
+  @@index([active, pinned, publishedAt])
+}
+
+model PostLike {
+  id        String   @id @default(uuid())
+  userId    String
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, postId])
+  @@index([postId])
+}
+
+model DropSubscription {
+  id        String   @id @default(uuid())
+  userId    String
+  songId    String?
+  label     String?
+  notifiedAt DateTime?
+  createdAt DateTime @default(now())
+
+  @@unique([userId, songId])
+  @@index([userId])
+  @@index([songId])
+}
+
+model Gift {
+  id         String   @id @default(uuid())
+  fromUserId String
+  toUserId   String
+  amount     Int
+  note       String?
+  createdAt  DateTime @default(now())
+
+  @@index([fromUserId, createdAt])
+  @@index([toUserId, createdAt])
+}
+
+model MinecraftAccount {
+  id         String    @id @default(uuid())
+  userId     String    @unique
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mcUuid     String    @unique
+  mcUsername String
+  linkedAt   DateTime  @default(now())
+  lastSeenAt DateTime?
+
+  @@index([mcUuid])
+}
+
+model MinecraftLinkCode {
+  id         String    @id @default(uuid())
+  userId     String
+  code       String    @unique
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+// Fan's Discord identity. One Discord account per copula user and vice
+// versa. We only keep the discriminator-free username + global avatar
+// hash; refresh tokens stored encrypted at rest like Patreon's.
+model DiscordAccount {
+  id              String    @id @default(uuid())
+  userId          String    @unique
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  discordUserId   String    @unique
+  username        String
+  globalName      String?
+  avatarHash      String?
+  accessToken     String?
+  refreshToken    String?
+  tokenExpires    DateTime?
+  linkedAt        DateTime  @default(now())
+
+  @@index([discordUserId])
+}
+
+// A SeasonPass is a time-boxed bundle of in-game rewards (cosmetics,
+// plots of land, titles) that fans earn by submitting content for
+// manual review. Only one season is "active" at a time.
+model SeasonPass {
+  id        String   @id @default(uuid())
+  slug      String   @unique
+  name      String
+  tagline   String?
+  startsAt  DateTime
+  endsAt    DateTime
+  active    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  rewards SeasonPassReward[]
+
+  @@index([active])
+}
+
+// A reward inside a season. `key` matches the plugin's
+// on-season-reward.<key> config block, so adding a new reward in the
+// app is a no-op until the server admin adds the matching commands.
+model SeasonPassReward {
+  id               String   @id @default(uuid())
+  seasonPassId     String
+  season           SeasonPass @relation(fields: [seasonPassId], references: [id], onDelete: Cascade)
+  key              String
+  name             String
+  description      String
+  kind             SeasonRewardKind
+  imageUrl         String?
+  sortOrder        Int      @default(0)
+  minTierSortOrder Int      @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  submissions SeasonPassSubmission[]
+  grants      SeasonPassGrant[]
+
+  @@unique([seasonPassId, key])
+  @@index([seasonPassId])
+}
+
+enum SeasonRewardKind {
+  cosmetic
+  plot
+  title
+  item
+  other
+}
+
+// One submission per fan per reward at a time (latest wins). When a
+// rejected submission lands, the fan can submit again.
+model SeasonPassSubmission {
+  id           String   @id @default(uuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rewardId     String
+  reward       SeasonPassReward @relation(fields: [rewardId], references: [id], onDelete: Cascade)
+  contentType  SubmissionContentType
+  contentBody  String
+  status       SubmissionStatus @default(pending)
+  reviewerNote String?
+  decidedAt    DateTime?
+  decidedBy    String?
+  createdAt    DateTime @default(now())
+
+  @@index([rewardId, status])
+  @@index([userId, createdAt])
+  @@index([status, createdAt])
+}
+
+enum SubmissionContentType {
+  url
+  text
+}
+
+enum SubmissionStatus {
+  pending
+  approved
+  rejected
+}
+
+// Approval writes a Grant. The plugin reads grants on login and runs
+// the configured commands once per (userId, rewardId).
+model SeasonPassGrant {
+  id           String   @id @default(uuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rewardId     String
+  reward       SeasonPassReward @relation(fields: [rewardId], references: [id], onDelete: Cascade)
+  submissionId String   @unique
+  refId        String   @unique
+  grantedAt    DateTime @default(now())
+
+  @@unique([userId, rewardId])
+  @@index([userId])
+}

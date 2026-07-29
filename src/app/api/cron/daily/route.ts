@@ -1,0 +1,179 @@
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+import { isAuthorizedCron } from "@/lib/cron";
+import { credit, defaultExpiry } from "@/lib/points";
+import { sendEmail } from "@/lib/email";
+import { sendPushToUser } from "@/lib/push";
+import {
+  BIRTHDAY_BONUS,
+  STREAK_REWARDS,
+  consecutiveChargeMonths,
+} from "@/lib/streaks";
+import { isBotConfigured, syncTierRole } from "@/lib/discordBot";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+async function run(req: NextRequest) {
+  if (!isAuthorizedCron(req)) {
+    return NextResponse.json({ error: "forbidden" }, { status: 403 });
+  }
+
+  const now = new Date();
+  const todayMM = String(now.getUTCMonth() + 1).padStart(2, "0");
+  const todayDD = String(now.getUTCDate()).padStart(2, "0");
+  const yyyy = now.getUTCFullYear();
+
+  const summary = {
+    birthdays: 0,
+    streaks: 0,
+    expiryWarnings: 0,
+    discordRolesReconciled: 0,
+  };
+
+  // Birthdays
+  const birthdayUsers = await prisma.user.findMany({
+    where: { dob: { not: null } },
+    select: { id: true, dob: true, email: true, displayName: true },
+  });
+  for (const u of birthdayUsers) {
+    if (!u.dob) continue;
+    const mm = String(u.dob.getUTCMonth() + 1).padStart(2, "0");
+    const dd = String(u.dob.getUTCDate()).padStart(2, "0");
+    if (mm !== todayMM || dd !== todayDD) continue;
+
+    const refId = `birthday:${u.id}:${yyyy}`;
+    const exists = await prisma.pointTransaction.findFirst({
+      where: { userId: u.id, refId },
+    });
+    if (exists) continue;
+
+    await credit({
+      userId: u.id,
+      amountCents: 0,
+      reason: "birthday",
+      refId,
+      flatBonus: BIRTHDAY_BONUS,
+      expiresAt: defaultExpiry(),
+    });
+    summary.birthdays++;
+
+    if (u.email) {
+      await sendEmail({
+        to: u.email,
+        subject: "happy birthday, love",
+        text: `happy birthday, ${u.displayName?.toLowerCase() ?? "you"}. a little something from me, because today is yours — ${BIRTHDAY_BONUS} points just landed in your balance. spend them on something that feels good.`,
+      });
+    }
+    await sendPushToUser(u.id, {
+      title: "happy birthday, love",
+      body: `${BIRTHDAY_BONUS} points, because today is yours.`,
+      url: "/rewards",
+    });
+  }
+
+  // Streak bonuses (only on the 1st of the month so credits don't compound)
+  if (now.getUTCDate() === 1) {
+    const activeUsers = await prisma.user.findMany({
+      where: { pledges: { some: { status: "active" } } },
+      select: { id: true },
+    });
+    for (const u of activeUsers) {
+      const streak = await consecutiveChargeMonths(u.id);
+      const reward = STREAK_REWARDS[streak];
+      if (!reward) continue;
+      const refId = `streak:${u.id}:${streak}`;
+      const exists = await prisma.pointTransaction.findFirst({
+        where: { userId: u.id, refId },
+      });
+      if (exists) continue;
+      await credit({
+        userId: u.id,
+        amountCents: 0,
+        reason: "streak",
+        refId,
+        flatBonus: reward,
+      });
+      summary.streaks++;
+    }
+  }
+
+  // Point expiry warnings (30-day notice, dedupe via audit log)
+  const horizon = new Date(now);
+  horizon.setUTCDate(horizon.getUTCDate() + 30);
+  const expiringSoon = await prisma.pointTransaction.findMany({
+    where: {
+      delta: { gt: 0 },
+      expiresAt: { gte: now, lte: horizon },
+    },
+    select: { id: true, userId: true, delta: true, expiresAt: true },
+  });
+
+  const byUser = new Map<string, { points: number; soonest: Date }>();
+  for (const t of expiringSoon) {
+    if (!t.expiresAt) continue;
+    const cur = byUser.get(t.userId);
+    if (!cur) byUser.set(t.userId, { points: t.delta, soonest: t.expiresAt });
+    else {
+      cur.points += t.delta;
+      if (t.expiresAt < cur.soonest) cur.soonest = t.expiresAt;
+    }
+  }
+
+  for (const [userId, agg] of byUser) {
+    const auditAction = `expiry_notice:${agg.soonest.toISOString().slice(0, 10)}`;
+    const already = await prisma.auditLog.findFirst({
+      where: { actorId: "system", action: auditAction, targetId: userId },
+    });
+    if (already) continue;
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { email: true, displayName: true },
+    });
+    if (user?.email) {
+      await sendEmail({
+        to: user.email,
+        subject: "your points are quietly about to expire",
+        text: `${agg.points.toLocaleString()} of your points drift away on ${agg.soonest
+          .toISOString()
+          .slice(0, 10)}. spend them on something that feels good — they're waiting at /rewards.`,
+      });
+    }
+    await sendPushToUser(userId, {
+      title: "your points are quietly about to expire",
+      body: `${agg.points.toLocaleString()} drift away on ${agg.soonest.toISOString().slice(0, 10)}.`,
+      url: "/rewards",
+    });
+    await prisma.auditLog.create({
+      data: {
+        actorId: "system",
+        action: auditAction,
+        targetId: userId,
+        payload: { points: agg.points, expiresAt: agg.soonest.toISOString() },
+      },
+    });
+    summary.expiryWarnings++;
+  }
+
+  // Discord role drift correction. syncTierRole is idempotent — it reads
+  // the member's current roles and only issues calls for deltas — so a
+  // daily full sweep is a near-no-op in steady state and self-heals
+  // manual edits, remapped role ids, or the bot being added after fans
+  // had already linked.
+  if (isBotConfigured()) {
+    const linked = await prisma.discordAccount.findMany({
+      select: { userId: true },
+    });
+    for (const { userId } of linked) {
+      const res = await syncTierRole(userId);
+      if (res.ok && ((res.added?.length ?? 0) || (res.removed?.length ?? 0))) {
+        summary.discordRolesReconciled++;
+      }
+    }
+  }
+
+  return NextResponse.json({ ok: true, ...summary });
+}
+
+export const GET = run;
+export const POST = run;

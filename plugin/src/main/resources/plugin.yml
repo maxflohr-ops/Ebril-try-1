@@ -1,0 +1,16 @@
+name: copula
+version: ${project.version}
+main: com.ebril.copula.CopulaPlugin
+api-version: "1.20"
+description: Links ebril's minecraft server to copula — tier sync, collectibles, in-game rewards.
+author: ebril
+
+commands:
+  copula:
+    description: Link and sync your copula account.
+    usage: |
+      /copula link <code>   — pair this minecraft account with copula
+      /copula sync          — re-pull your tier + cassettes
+      /copula balance       — show your copula points
+      /copula unlink        — unpair on the server side
+    aliases: [cop]
