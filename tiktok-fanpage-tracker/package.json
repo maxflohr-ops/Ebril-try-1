@@ -1,0 +1,17 @@
+{
+  "name": "tiktok-fanpage-tracker",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Track engagement and reliability of the TikTok fan pages that post your content.",
+  "type": "module",
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "scripts": {
+    "start": "node bin/tracker.js serve",
+    "sync": "node bin/tracker.js sync",
+    "report": "node bin/tracker.js report",
+    "demo": "node bin/tracker.js demo",
+    "test": "node --test test/*.test.js"
+  }
+}

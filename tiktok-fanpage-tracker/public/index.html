@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fanpage Tracker</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="dot"></span>
+    <h1>Fanpage Tracker</h1>
+  </div>
+  <div class="controls">
+    <div class="segmented" id="window-select" role="group" aria-label="Time window">
+      <button data-window="7">7d</button>
+      <button data-window="30" class="active">30d</button>
+      <button data-window="90">90d</button>
+    </div>
+    <button class="btn" id="add-page-btn">Add page</button>
+    <button class="btn primary" id="sync-btn">Sync now</button>
+  </div>
+</header>
+
+<div id="setup-banner" class="banner hidden"></div>
+
+<main>
+  <section class="stats" id="summary"></section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h2>Roster</h2>
+      <div class="panel-actions">
+        <input type="search" id="filter" placeholder="Filter pages…" aria-label="Filter pages">
+        <label class="check"><input type="checkbox" id="show-inactive"> show paused/dropped</label>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table id="roster">
+        <thead>
+          <tr>
+            <th data-sort="handle" class="left">Page</th>
+            <th data-sort="score" class="sorted-desc">Score</th>
+            <th data-sort="followers">Followers</th>
+            <th data-sort="posts">Posts</th>
+            <th data-sort="totalViews">Views</th>
+            <th data-sort="medianViews">Median/post</th>
+            <th data-sort="engagementRate">Engagement</th>
+            <th data-sort="shareRate">Share rate</th>
+            <th data-sort="trend">Trend</th>
+            <th class="left">Signals</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <p class="empty hidden" id="roster-empty"></p>
+  </section>
+</main>
+
+<aside class="drawer" id="drawer" aria-hidden="true">
+  <div class="drawer-inner" id="drawer-content"></div>
+</aside>
+<div class="scrim" id="scrim"></div>
+
+<dialog id="add-dialog">
+  <form method="dialog" id="add-form">
+    <h2>Add a fan page</h2>
+    <label>TikTok handle
+      <input name="handle" placeholder="@theirfanpage" required autocomplete="off">
+    </label>
+    <label>Posts per week agreed
+      <input name="expected_posts_per_week" type="number" min="0" step="0.5" value="5">
+    </label>
+    <label>Notes
+      <textarea name="notes" rows="2" placeholder="Deal terms, contact, which content they cover…"></textarea>
+    </label>
+    <p class="hint">Adding the page reserves its slot. To pull real numbers, send them the
+      connect link shown afterwards so they can authorize your TikTok app.</p>
+    <div class="dialog-actions">
+      <button value="cancel" class="btn">Cancel</button>
+      <button value="add" class="btn primary">Add page</button>
+    </div>
+  </form>
+</dialog>
+
+<div id="toast" class="toast hidden"></div>
+<script type="module" src="/app.js"></script>
+</body>
+</html>
